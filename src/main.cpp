@@ -1,14 +1,13 @@
-/*
- * Domagoj Boros
- * Mateja Skriljak
- * Ivan Jurin
- *
- * Bioinformatika, 2016.
- */
-
 #include <iostream>
+#include <vector>
+
+#include "Overlap.h"
+#include "MHAPReader.h"
 
 int main() {
-    std::cout << "Hello, World!" << std::endl;
+
+    std::vector<Overlap> overlaps;
+    std::cout << "Read " << MHAPReader::read("../test-data/ecoli_overlap.mhap", overlaps) << " overlaps" << std::endl;
+
     return 0;
 }
