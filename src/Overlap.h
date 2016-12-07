@@ -12,6 +12,34 @@ public:
     afwd_(afwd), astart_(astart), aend_(aend), alen_(alen),
     bfwd_(bfwd), bstart_(bstart), bend_(bend), blen_(blen) {};
 
+    int getAId() { return aId_; }
+
+    int getBId() { return bId_; }
+
+    int getAStart() { return astart_; }
+
+    int getAEnd() { return aend_; }
+
+    int getBStart() {
+        if (bfwd_) return bstart_;
+        else return bend_;
+    }
+
+    int getBEnd() {
+        if (bfwd_) return bend_;
+        else return bstart_;
+    }
+
+    int getALength() { return alen_; }
+
+    int getBLength() { return blen_; }
+
+    /**
+     *
+     * @return true if the overlap is with the reverse comeplement of b
+     */
+    int isBrc() { return !bfwd_; }
+
 private:
 
     int aId_;
