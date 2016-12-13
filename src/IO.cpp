@@ -10,7 +10,7 @@
 
 #include "IO.h"
 
-int readMHAPOverlaps(const std::string &path, std::vector<Overlap *>& overlaps, const std::vector<Read*>& reads) {
+int readMHAPOverlaps(const std::string &path, std::vector<Overlap *> &overlaps) {
 
     std::ifstream is;
     is.open(path);
@@ -29,23 +29,23 @@ int readMHAPOverlaps(const std::string &path, std::vector<Overlap *>& overlaps, 
 
     int numoverlaps = 0;
     while (is >> aId >> bId >> err >> minmers >> arc >> as >> ae >> al >> brc >> bs >> be >> bl) {
-        overlaps.push_back(new Overlap(reads[aId-1], reads[bId-1], aId, bId, !arc, as, ae, al, !brc, bs, be, bl));
+        overlaps.push_back(new Overlap(aId, bId, !arc, as, ae, al, !brc, bs, be, bl));
         numoverlaps++;
     }
 
     return numoverlaps;
 }
 
-int readFASTAReads(const std::string& path, std::vector<Read *>& reads) {
+int readFASTAReads(const std::string &path, std::vector<Read *> &reads) {
 
-    #define BUFFER_SIZE 4096
+#define BUFFER_SIZE 4096
 
-    FILE* f = fopen(path.c_str(), "r");
+    FILE *f = fopen(path.c_str(), "r");
 
     std::string name;
     std::string sequence;
 
-    char* buffer = new char[BUFFER_SIZE];
+    char *buffer = new char[BUFFER_SIZE];
 
     bool isName = false;
     bool createRead = false;
@@ -91,10 +91,10 @@ int readFASTAReads(const std::string& path, std::vector<Read *>& reads) {
     fclose(f);
 
     return (int) reads.size();
-    #undef BUFFER_SIZE
+#undef BUFFER_SIZE
 }
 
-void writeOverlapsToSIF(const std::string& path, const std::vector<Overlap* >& overlaps) {
+void writeOverlapsToSIF(const std::string &path, const std::vector<Overlap *> &overlaps) {
 
     std::ofstream os;
     os.open(path);
@@ -107,4 +107,30 @@ void writeOverlapsToSIF(const std::string& path, const std::vector<Overlap* >& o
 
     os.flush();
     os.close();
+}
+
+int readPAFOverlaps(const std::string &path, std::vector<Overlap *> &overlaps) {
+    std::ifstream is;
+    is.open(path);
+
+    if (!is.is_open()) {
+        std::cerr << "Unable to open file " << path << std::endl;
+        return 0;
+    }
+
+    std::string line;
+    int aId, bId;
+    int as, ae, al;
+    int bs, be, bl;
+    char rc;
+
+    std::string sh1, sh2, sh3, sh4;
+
+    int numoverlaps = 0;
+    while (is >> aId >> al >> as >> ae >> rc >> bId >> bl >> bs >> be >> sh1 >> sh2 >> sh3 >> sh4) {
+        overlaps.push_back(new Overlap(aId, bId, true, as, ae, al, rc == '+', bs, be, bl));
+        numoverlaps++;
+    }
+
+    return numoverlaps;
 }

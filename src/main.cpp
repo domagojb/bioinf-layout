@@ -7,15 +7,16 @@
 #include "OverlapUtils.h"
 
 int main() {
+//    std::vector<Read *> reads;
 
-    std::vector<Read *> reads;
-    std::cout << "Read " << readFASTAReads("../test-data/lambda_reads.fasta", reads) << " reads" << std::endl;
+//    std::cout << "Read " << readFASTAReads("../test-data/lambda_reads.fasta", reads) << " reads" << std::endl;
 
     std::vector<Overlap *> overlaps;
-    std::cout << "Read " << readMHAPOverlaps("../test-data/lambda_overlaps.mhap", overlaps, reads) << " overlaps" << std::endl;
+//    std::cout << "Read " << readMHAPOverlaps("../test-data/lambda_overlaps.mhap", overlaps) << " overlaps" << std::endl;
+    std::cout << "Read " << readPAFOverlaps("../test-data/lambda_overlaps.paf", overlaps) << " overlaps" << std::endl;
 
     std::vector<Overlap *> nonInternalMatches;
-    filterInternalMatches(overlaps, nonInternalMatches);
+    filterInteralMathches(overlaps, nonInternalMatches);
     std::cout << "Filtered internal matches: " << nonInternalMatches.size() << " remain" << std::endl;
 
     std::vector<Overlap *> nonContained;
