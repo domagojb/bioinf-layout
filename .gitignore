@@ -1,0 +1,5 @@
+*.fasta
+*.zip
+*.sif
+.idea
+src/cmake-build-debug
