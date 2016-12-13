@@ -10,7 +10,7 @@ public:
     Overlap(int aId, int bId, bool afwd, int astart, int aend, int alen, bool bfwd, int bstart, int bend, int blen) :
     aId_(aId), bId_(bId),
     afwd_(afwd), astart_(astart), aend_(aend), alen_(alen),
-    bfwd_(bfwd), bstart_(bstart), bend_(bend), blen_(blen) {};
+    bfwd_(bfwd), bstart_(bstart), bend_(bend), blen_(blen) {}
 
     int getAId() { return aId_; }
 
