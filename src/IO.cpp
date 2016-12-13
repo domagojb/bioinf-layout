@@ -10,7 +10,7 @@
 
 #include "IO.h"
 
-int readMHAPOverlaps(const std::string &path, std::vector<Overlap *>& overlaps) {
+int readMHAPOverlaps(const std::string &path, std::vector<Overlap *>& overlaps, std::vector<Read*> reads) {
 
     std::ifstream is;
     is.open(path);
@@ -29,7 +29,7 @@ int readMHAPOverlaps(const std::string &path, std::vector<Overlap *>& overlaps) 
 
     int numoverlaps = 0;
     while (is >> aId >> bId >> err >> minmers >> arc >> as >> ae >> al >> brc >> bs >> be >> bl) {
-        overlaps.push_back(new Overlap(aId, bId, !arc, as, ae, al, !brc, bs, be, bl));
+        overlaps.push_back(new Overlap(reads[aId-1], reads[bId-1], aId, bId, !arc, as, ae, al, !brc, bs, be, bl));
         numoverlaps++;
     }
 

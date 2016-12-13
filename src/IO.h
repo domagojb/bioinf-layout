@@ -16,7 +16,7 @@ class Read;
  * @param overlaps list of overlaps extracted from the file
  * @return number of overlaps extracted
  */
-int readMHAPOverlaps(const std::string& path, std::vector<Overlap* >& overlaps);
+int readMHAPOverlaps(const std::string& path, std::vector<Overlap* >& overlaps, std::vector<Read*>);
 
 /**
  * Reads reads from the given FASTA file.
