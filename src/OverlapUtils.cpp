@@ -10,7 +10,7 @@
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
 
-void filterInteralMathches(const std::vector<Overlap *>& source, std::vector<Overlap *>& dest, int o, float r) {
+void filterInternalMatches(const std::vector<Overlap *>& source, std::vector<Overlap *>& dest, int o, float r) {
 
     for (const auto overlap : source) {
         int overhang = MIN(overlap->getAStart(), overlap->getBStart()) - MIN(overlap->getALength() - overlap->getAEnd(), overlap->getBLength() - overlap->getBEnd());

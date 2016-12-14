@@ -3,12 +3,13 @@
 //
 
 #pragma once
+#include "Read.h"
 
 class Overlap {
 public:
 
-    Overlap(int aId, int bId, bool afwd, int astart, int aend, int alen, bool bfwd, int bstart, int bend, int blen) :
-    aId_(aId), bId_(bId),
+    Overlap(const Read* read_a, const Read* read_b, int aId, int bId, bool afwd, int astart, int aend, int alen, bool bfwd, int bstart, int bend, int blen) :
+    aread_(read_a), bread_(read_b), aId_(aId), bId_(bId),
     afwd_(afwd), astart_(astart), aend_(aend), alen_(alen),
     bfwd_(bfwd), bstart_(bstart), bend_(bend), blen_(blen) {}
 
@@ -40,6 +41,12 @@ public:
      */
     int isBrc() { return !bfwd_; }
 
+    const Read* getAread() const { return aread_; }
+    void setAread(const Read* aread) { aread_ = aread; }
+
+    const Read* getBread() const { return bread_; }
+    void setBread(const Read* bread) { bread_ = bread; }
+
 private:
 
     int aId_;
@@ -52,4 +59,6 @@ private:
     int bend_;
     int blen_;
     bool bfwd_;
+    const Read* aread_;
+    const Read* bread_;
 };
