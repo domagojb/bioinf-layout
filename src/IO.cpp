@@ -10,7 +10,7 @@
 
 #include "IO.h"
 
-int readMHAPOverlaps(const std::string &path, std::vector<Overlap *>& overlaps, std::vector<Read*> reads) {
+int readMHAPOverlaps(const std::string &path, std::vector<Overlap *>& overlaps, const std::vector<Read*>& reads) {
 
     std::ifstream is;
     is.open(path);
