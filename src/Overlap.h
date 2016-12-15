@@ -3,62 +3,51 @@
 //
 
 #pragma once
-#include "Read.h"
+
+#include <string>
+#include <sstream>
 
 class Overlap {
 public:
 
-    Overlap(const Read* read_a, const Read* read_b, int aId, int bId, bool afwd, int astart, int aend, int alen, bool bfwd, int bstart, int bend, int blen) :
-    aread_(read_a), bread_(read_b), aId_(aId), bId_(bId),
-    afwd_(afwd), astart_(astart), aend_(aend), alen_(alen),
-    bfwd_(bfwd), bstart_(bstart), bend_(bend), blen_(blen) {}
+    Overlap(
+            int aId,
+            int aLength,
+            int aStart,
+            int aEnd,
+            bool isReversed,
+            int bId,
+            int bLength,
+            int bStart,
+            int bEnd,
+            int numberOfSequenceMatches,
+            int alignmentBlockLength
+    );
 
-    int getAId() { return aId_; }
 
-    int getBId() { return bId_; }
 
-    int getAStart() { return astart_; }
+    const std::string toStringVerbose() const;
 
-    int getAEnd() { return aend_; }
+    const std::string toString() const;
 
-    int getBStart() {
-        if (bfwd_) return bstart_;
-        else return bend_;
+    inline bool operator<(const Overlap &rhs) const {
+        if (aId_ < rhs.aId_)
+            return true;
+        if (rhs.aId_ < aId_)
+            return false;
+        return aStart_ < rhs.aStart_;
     }
 
-    int getBEnd() {
-        if (bfwd_) return bend_;
-        else return bstart_;
-    }
-
-    int getALength() { return alen_; }
-
-    int getBLength() { return blen_; }
-
-    /**
-     *
-     * @return true if the overlap is with the reverse comeplement of b
-     */
-    int isBrc() { return !bfwd_; }
-
-    const Read* getAread() const { return aread_; }
-    void setAread(const Read* aread) { aread_ = aread; }
-
-    const Read* getBread() const { return bread_; }
-    void setBread(const Read* bread) { bread_ = bread; }
-
-private:
-
+//private:
     int aId_;
+    int aLength_;
+    int aStart_;
+    int aEnd_;
+    bool isReversed_;
     int bId_;
-    int astart_;
-    int aend_;
-    int alen_;
-    bool afwd_;
-    int bstart_;
-    int bend_;
-    int blen_;
-    bool bfwd_;
-    const Read* aread_;
-    const Read* bread_;
+    int bLength_;
+    int bStart_;
+    int bEnd_;
+    int numberOfSequenceMatches_;
+    int alignmentBlockLength_;
 };

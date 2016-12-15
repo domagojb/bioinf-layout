@@ -8,17 +8,12 @@
 
 class Read {
 public:
-    Read(size_t id, const std::string& sequence);
-    ~Read();
-
-    size_t getId() const { return id_; }
-
-    const std::string& sequence() const { return sequence_; }
-
-    const std::string& reverseComplement() const { return reverseComplement_; }
+    Read(int id, int length, int aux, bool del) : id_(id), length_(length), aux_(aux), del_(del) {};
+    Read() : Read(0,0,0, false) {};
 
 private:
-    size_t id_;
-    std::string sequence_;
-    std::string reverseComplement_;
+    int id_;
+    int length_;
+    int aux_;
+    bool del_;
 };
