@@ -92,20 +92,21 @@
 //#undef BUFFER_SIZE
 //}
 //
-//void writeOverlapsToSIF(const std::string &path, const std::vector<Overlap *> &overlaps) {
-//
-//    std::ofstream os;
-//    os.open(path);
-//
-//    char edgeType[2] = {0, 0};
-//    for (const auto overlap : overlaps) {
-////        edgeType[0] = (overlap->isBrc()) ? 'a' : 'b';
-////        os << overlap->getAId() << " " << edgeType << " " << overlap->getBId() << std::endl;
-//    }
-//
-//    os.flush();
-//    os.close();
-//}
+void writeOverlapsToSIF(const std::string &path, const Overlaps &overlaps) {
+
+    std::ofstream os;
+    os.open(path);
+
+    char edgeType[2] = {0, 0};
+    for (const auto & overlap : overlaps) {
+        os<< overlap.aId_<<" "<<"stipe"<<" "<<overlap.bId_<<std::endl;
+//        edgeType[0] = (overlap->isBrc()) ? 'a' : 'b';
+//        os << overlap->getAId() << " " << edgeType << " " << overlap->getBId() << std::endl;
+    }
+
+    os.flush();
+    os.close();
+}
 
 void loadPAF(Overlaps &overlaps, Reads &reads, const std::string &path, const Params &params) {
     std::ifstream is;

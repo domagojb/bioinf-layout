@@ -30,7 +30,7 @@ int readMHAPOverlaps(const std::string &path, std::vector<Overlap *> &overlaps, 
  */
 int readFASTAReads(const std::string &path, std::vector<Read *> &reads);
 
-void writeOverlapsToSIF(const std::string &path, const std::vector<Overlap *> &overlaps);
+void writeOverlapsToSIF(const std::string &path, const Overlaps &overlaps);
 
 
 /**

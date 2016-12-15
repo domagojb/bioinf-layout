@@ -38,7 +38,7 @@ public:
         return aStart_ < rhs.aStart_;
     }
 
-private:
+//private:
     int aId_;
     int aLength_;
     int aStart_;

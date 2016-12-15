@@ -13,8 +13,12 @@ int main() {
     Params params(getDefaultParams());
 
     loadPAF(overlaps,reads,"../test-data/lambda_overlaps.paf", params);
-    std::cout << "Read " << overlaps.size() << " overlaps" << std::endl;
-    std::cout << "Read " << reads.size() << " reads" << std::endl;
+//    std::cout << "Read " << overlaps.size() << " overlaps" << std::endl;
+//    std::cout << "Read " << reads.size() << " reads" << std::endl;
+
+    writeOverlapsToSIF("mnebijemte.sif",overlaps);
+
+
 
     return 0;
 }
