@@ -5,8 +5,11 @@
 #pragma once
 
 #include <vector>
+#include "common.h"
+#include "params.h"
 
 class Overlap;
+
 class Read;
 
 /**
@@ -16,7 +19,7 @@ class Read;
  * @param overlaps list of overlaps extracted from the file
  * @return number of overlaps extracted
  */
-int readMHAPOverlaps(const std::string& path, std::vector<Overlap* >& overlaps);
+int readMHAPOverlaps(const std::string &path, std::vector<Overlap *> &overlaps, const std::vector<Read *> &reads);
 
 /**
  * Reads reads from the given FASTA file.
@@ -25,9 +28,9 @@ int readMHAPOverlaps(const std::string& path, std::vector<Overlap* >& overlaps);
  * @param reads list of reads extracted from the file
  * @return number of reads extracted
  */
-int readFASTAReads(const std::string& path, std::vector<Read* >& reads);
+int readFASTAReads(const std::string &path, std::vector<Read *> &reads);
 
-void writeOverlapsToSIF(const std::string& path, const std::vector<Overlap* >& overlaps);
+void writeOverlapsToSIF(const std::string &path, const std::vector<Overlap *> &overlaps);
 
 
 /**
@@ -35,6 +38,8 @@ void writeOverlapsToSIF(const std::string& path, const std::vector<Overlap* >& o
  *
  * @param path path to PAF file
  * @param overlaps list of overlaps extracted from the file
- * @return number of overlaps extracted
  */
-int readPAFOverlaps(const std::string& path, std::vector<Overlap* >& overlaps);
+void loadPAF(Overlaps &overlaps, Reads &reads, const std::string &path, const Params &params);
+
+
+void logOverlaps(const Overlaps& overlaps);
