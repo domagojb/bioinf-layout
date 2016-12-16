@@ -3,10 +3,14 @@
 //
 #pragma once
 
+#include "common.h"
+
 typedef struct {
 
-    int minAllowedMatchSpan; // bp
-    int minAllowedNumberOfSequenceMatches; // bp
+    read_size_t minAllowedMatchSpan; // bp
+    read_size_t minAllowedNumberOfSequenceMatches; // bp
+    read_size_t minimalReadCoverage; //bp
+    float minimalIdentityFactor;
 } Params;
 
 Params getDefaultParams();

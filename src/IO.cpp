@@ -118,13 +118,13 @@ void loadPAF(Overlaps &overlaps, Reads &reads, const std::string &path, const Pa
     }
 
     std::string line;
-    int aId, bId;
-    int aStart, aEnd, aLength;
-    int bStart, bEnd, bLength;
+    read_id_t aId, bId;
+    read_size_t aStart, aEnd, aLength;
+    read_size_t bStart, bEnd, bLength;
     char relativeStrand; // - or +
 
-    int numberOfSequenceMatches; // the number of sequence matches
-    int alignmentBlockLength; // the total number of sequence matches, mismatches, insertions and deletions in the alignment
+    read_size_t numberOfSequenceMatches; // the number of sequence matches
+    read_size_t alignmentBlockLength; // the total number of sequence matches, mismatches, insertions and deletions in the alignment
 
     std::string placeholder1, placeholder2;
 
@@ -145,8 +145,8 @@ void loadPAF(Overlaps &overlaps, Reads &reads, const std::string &path, const Pa
             >> placeholder2
             ) {
 
-        int aMatchSpan(aEnd - aStart);
-        int bMatchSpan(bEnd - bStart);
+        read_size_t aMatchSpan(aEnd - aStart);
+        read_size_t bMatchSpan(bEnd - bStart);
 
         if (aMatchSpan < params.minAllowedMatchSpan) continue;
         if (bMatchSpan < params.minAllowedMatchSpan) continue;
