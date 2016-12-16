@@ -52,15 +52,23 @@ public:
     }
 
     read_id_t aId() const {return aId_;}
+    read_size_t aLength() const {return aLength_;}
     read_size_t aStart() const {return aStart_;}
     read_size_t aEnd() const {return aEnd_;}
 
+    bool isReversed() const {return isReversed_;}
+
     read_id_t bId() const {return bId_;}
+    read_size_t bLength() const {return bLength_;}
     read_size_t bStart() const {return bStart_;}
     read_size_t bEnd() const {return bEnd_;}
 
-    int numberOfSequenceMatches() const { return numberOfSequenceMatches_;}
-    int alignmentBlockLength() const { return alignmentBlockLength_;}
+    read_size_t numberOfSequenceMatches() const { return numberOfSequenceMatches_;}
+    read_size_t alignmentBlockLength() const { return alignmentBlockLength_;}
+
+    read_size_t aSpan() const { return aStart_ - aEnd_; }
+    read_size_t bSpan() const { return bStart_ - bEnd_; }
+
 
 //private:
     read_id_t aId_;

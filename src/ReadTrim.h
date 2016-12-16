@@ -6,16 +6,16 @@
 
 class ReadTrim {
 public:
-    ReadTrim(int begin, int end, bool del) : begin(begin), end(end), del(del) {}
+    ReadTrim(int begin, int end, bool del) : start(begin), end(end), del(del) {}
     ReadTrim() : ReadTrim(0,0, false) {}
 
     const std::string toString() const {
         std::stringstream ss;
-        ss<<begin<<"-"<<end<<" "<<"NY"[del];
+        ss<<start<<"-"<<end<<" "<<"NY"[del];
         return ss.str();
     }
 
-    int begin;
+    int start;
     int end;
     bool del;
 };

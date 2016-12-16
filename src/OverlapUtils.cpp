@@ -3,10 +3,11 @@
 //
 
 #include "OverlapUtils.h"
+#include "params.h"
 
 
-#define MATCH_BEGIN 0
-#define MATCH_END (!(MATCH_BEGIN))
+#define MATCH_START 0
+#define MATCH_END (!(MATCH_START))
 
 void extractPoints(
         std::vector<std::pair<int, bool>> &points,
@@ -34,7 +35,7 @@ void extractPoints(
         auto const aEndNew(overlap.aEnd() - endClipping);
 
         if (aStartNew < aEndNew) {
-            points.emplace_back(aStartNew, MATCH_BEGIN);
+            points.emplace_back(aStartNew, MATCH_START);
             points.emplace_back(aEndNew, MATCH_END);
         }
     }
@@ -45,10 +46,9 @@ void extractPoints(
 
 void proposeReadTrims(
         ReadTrims &readTrims,
-        read_size_t minimalReadCoverage,
-        float minimalIdentityFactor,
-        read_size_t endClipping,
-        const Overlaps &overlaps
+        const Overlaps &overlaps,
+        const Params & params,
+        bool clipEndings
 )
 {
     // isolating overlaps by their query(aId) reads and proposing cuts and deletions based on them
@@ -58,8 +58,10 @@ void proposeReadTrims(
     // therefore variable <last> remembers last time the diff has occurred
 
 
+    auto endClipping(clipEndings?params.minAllowedMatchSpan/2:0);
     auto last(0UL);
     auto overlapsCount(overlaps.size());
+    auto saneTrimCounter(0UL);
     for (auto i(1UL); i <= overlapsCount; ++i) {
         int aId(overlaps[i - 1].aId());
 
@@ -69,7 +71,7 @@ void proposeReadTrims(
             std::vector<std::pair<int, bool>> points;
 
             // extract start and end points at the query for all overlaps on it
-            extractPoints(points, minimalIdentityFactor, endClipping, last, i, aId, overlaps);
+            extractPoints(points, params.minimalIdentityFactor, endClipping, last, i, aId, overlaps);
 
 
             // do some magic to extract the largest portion of read which is covered with at least minimalReadCoverage
@@ -78,8 +80,8 @@ void proposeReadTrims(
             //    |--|      <- find this part
 
             ReadTrim max, max2;
-            int begin(0);
-            decltype(minimalReadCoverage) readCoverage = 0;
+            int start(0);
+            decltype(params.minimalReadCoverage) readCoverage = 0;
             for (auto const &point: points) {
                 auto const oldReadCoverage(readCoverage);
 
@@ -87,30 +89,32 @@ void proposeReadTrims(
                 auto const pointType(point.second);
 
 
-                pointType == MATCH_BEGIN ? ++readCoverage : --readCoverage;
+                pointType == MATCH_START ? ++readCoverage : --readCoverage;
 
-                if (oldReadCoverage < minimalReadCoverage && minimalReadCoverage <= readCoverage) {
-                    begin = pointPosition;
-                } else if (readCoverage < minimalReadCoverage && minimalReadCoverage <= oldReadCoverage) {
-                    auto len(pointPosition - begin);
-                    if (len > max.end - max.begin) {
+                if (oldReadCoverage < params.minimalReadCoverage && params.minimalReadCoverage <= readCoverage) {
+                    start = pointPosition;
+                } else if (readCoverage < params.minimalReadCoverage && params.minimalReadCoverage <= oldReadCoverage) {
+                    auto len(pointPosition - start);
+                    if (len > max.end - max.start) {
                         max2 = max;
-                        max.begin = begin;
+                        max.start = start;
                         max.end = pointPosition;
-                    } else if (len > max2.end - max2.begin) {
-                        max2.begin = begin;
+                    } else if (len > max2.end - max2.start) {
+                        max2.start = start;
                         max2.end = pointPosition;
                     }
                 }
             }
 
-            // add trim if it is sane
-            if(max.begin < max.end) readTrims[aId] = ReadTrim(max.begin - endClipping, max.end + endClipping, true);
+            // if trim start < trim end consider it sane or set delete flag otherwise
+            bool isSaneTrim = max.start < max.end;
+            readTrims[aId] = ReadTrim(max.start - endClipping, max.end + endClipping, !isSaneTrim);
+            if(isSaneTrim) ++saneTrimCounter;
 
             last = i;
         }
     }
-
+    std::cout<<"Remained "<<saneTrimCounter<<" sane trims"<<std::endl;
 }
 
 #undef IS_END

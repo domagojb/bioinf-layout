@@ -9,8 +9,7 @@
 
 void proposeReadTrims(
         ReadTrims &readTrims,
-        int minimalReadCoverage,
-        float minimalIdentityFactor,
-        int endClipping,
-        const Overlaps &overlaps
+        const Overlaps &overlaps,
+        const Params & params,
+        bool clipEndings
 );

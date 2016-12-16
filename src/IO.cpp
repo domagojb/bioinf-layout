@@ -198,6 +198,9 @@ void loadPAF(Overlaps &overlaps, Reads &reads, const std::string &path, const Pa
     // sort overlaps
 
     std::sort(overlaps.begin(),overlaps.end());
+
+    std::cout << "Read " << overlaps.size() << " overlaps" << std::endl;
+    std::cout << "Read " << reads.size() << " reads" << std::endl;
 }
 
 void logOverlaps(const Overlaps &overlaps) {
