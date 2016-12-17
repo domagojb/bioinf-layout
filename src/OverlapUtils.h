@@ -15,3 +15,4 @@ void proposeReadTrims(
 );
 
 void filterChimeric(Overlaps& overlaps, ReadTrims& readTrims, Params& params);
+void filterContained(Overlaps& overlaps, ReadTrims& readTrims, Params& params);

@@ -187,5 +187,28 @@ void filterChimeric(Overlaps& overlaps, ReadTrims& readTrims, Params& params) {
     }
 }
 
+void filterContained(Overlaps& overlaps, ReadTrims& readTrims, Params& params) {
+
+    for (auto& o : overlaps) {
+        int alen = readTrims[o.aId()].end - readTrims[o.aId()].start;
+        int blen = readTrims[o.bId()].end - readTrims[o.bId()].start;
+        OverlapClassification c;
+        read_size_t olen;
+        Edge e;
+        classifyOverlapAndMeasureItsLength(c, olen, e, o, alen, blen, params.maxOverhang, 0, 0); // TODO BROJKE
+        if (c == PEDER_1) readTrims[o.aId()].del = true;
+        else if (c == PEDER_2) readTrims[o.bId()].del = true;
+    }
+
+    Overlaps filtered;
+
+    for (auto& o : overlaps) {
+        if (readTrims[o.aId()].del || readTrims[o.bId()].del) continue;
+        filtered.push_back(o);
+    }
+
+    overlaps.swap(filtered);
+}
+
 #undef IS_END
 #undef IS_START
