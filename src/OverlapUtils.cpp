@@ -2,79 +2,120 @@
 // Created by Domagoj Boros on 04/12/2016.
 //
 
-#include "Overlap.h"
-
 #include "OverlapUtils.h"
-
-#define MIN(a, b) (((a) < (b)) ? (a) : (b))
-#define MAX(a, b) (((a) > (b)) ? (a) : (b))
+#include "params.h"
 
 
-void filterInternalMatches(const std::vector<Overlap *>& source, std::vector<Overlap *>& dest, int o, float r) {
+#define MATCH_START 0
+#define MATCH_END (!(MATCH_START))
 
-//    for (const auto overlap : source) {
-//        int overhang = MIN(overlap->getAStart(), overlap->getBStart()) - MIN(overlap->getALength() - overlap->getAEnd(), overlap->getBLength() - overlap->getBEnd());
-//        int maplen = MAX(overlap->getAEnd() - overlap->getAStart(), overlap->getBEnd() - overlap->getBStart());
-//        if (overhang > MIN(o, maplen * r)) continue;
-//        dest.push_back(overlap);
-//    }
-}
+void extractPoints(
+        std::vector<std::pair<int, bool>> &points,
+        float minimalIdentityFactor,
+        int endClipping,
+        size_t last,
+        size_t i,
+        int aId,
+        const Overlaps &overlaps
+)
+{
+    for (auto j(last); j < i; ++j) {
 
-void filterContained(const std::vector<Overlap *>& contained, std::vector<Overlap *>& noncontained) {
+        auto const &overlap(overlaps[j]);
 
-//    for (const auto overlap : contained) {
-//        if (overlap->getAStart() <= overlap->getBStart() && overlap->getALength() - overlap->getAEnd() <= overlap->getBLength() - overlap->getBEnd()) continue;
-//        if (overlap->getAStart() >= overlap->getBStart() && overlap->getALength() - overlap->getAEnd() >= overlap->getBLength() - overlap->getBEnd()) continue;
-//        noncontained.push_back(overlap);
-//    }
-}
+        auto const bid(overlap.bId());
 
-void filterTransitiveEdges(const std::vector<Overlap *> &nonContained, std::vector<Overlap *> &nonTransitive) {
+        if (aId == bid) continue; // match with same read
 
-    std::map<int,std::vector<std::pair<int,Overlap *>>> allIngoingEdges;
-    std::map<int,std::vector<std::pair<int,Overlap *>>> allOutgoingEdges;
+// large relative levenshtein distance of a match?
+        if (overlap.numberOfSequenceMatches() < overlap.alignmentBlockLength() * minimalIdentityFactor)
+            continue;
 
+        auto const aStartNew(overlap.aStart() + endClipping);
+        auto const aEndNew(overlap.aEnd() - endClipping);
 
-    //todo fill z graph
-
-    for(const auto & vertex_edges:allIngoingEdges){
-        std::sort(vertex_edges.second.begin(),vertex_edges.second.end());
-    }
-    for(const auto & vertex_edges:allOutgoingEdges){
-        std::sort(vertex_edges.second.begin(),vertex_edges.second.end());
+        if (aStartNew < aEndNew) {
+            points.emplace_back(aStartNew, MATCH_START);
+            points.emplace_back(aEndNew, MATCH_END);
+        }
     }
 
-    for(const auto & firstVertexOutgoingEdges:allOutgoingEdges){
-//        int firstVertexId = vertex_edges.first;
-//
-//        auto const & firstVertexOutgoingEdges(vertex_edges.second);
-//
-//
-//        for (const auto & edge : firstVertexOutgoingEdges){
-//            int secondVertexId = edge.first;
-//
-//            auto const & secondVertexIngoingEdges(ingoingEdges.at(secondVertexId));
-//
-//            for(const auto & firstEdge:firstVertexOutgoingEdges) {
-//                for(const auto & secondEdge:secondVertexIngoingEdges) {
-//
-//
-//                }
-//            }
-//
-//        }
-
-    }
-
-
-
+    std::sort(points.begin(), points.end());
 }
 
-//void generateAssemblyGraph(std::vector<Overlap *> overlaps, Graph &graph) {
-//
-//    for (const auto overlap : overlaps) {
-//        if (overlap->getAStart() > overlap->getBStart()){
-//            graph.addEdge(overlap,true);
-//        }
-//    }
-//}
+
+void proposeReadTrims(
+        ReadTrims &readTrims,
+        const Overlaps &overlaps,
+        const Params & params,
+        bool clipEndings
+)
+{
+    // isolating overlaps by their query(aId) reads and proposing cuts and deletions based on them
+    // overlaps are assumed to be sorted based on their query(aId) read
+    // outer for loop iterates over all overlaps and when encounters a diff between last and new query(aId) read
+    // it processes all overlaps between two diff occurrences,
+    // therefore variable <last> remembers last time the diff has occurred
+
+
+    auto endClipping(clipEndings?params.minAllowedMatchSpan/2:0);
+    auto last(0UL);
+    auto overlapsCount(overlaps.size());
+    auto saneTrimCounter(0UL);
+    for (auto i(1UL); i <= overlapsCount; ++i) {
+        int aId(overlaps[i - 1].aId());
+
+        if (i == overlapsCount || aId != overlaps[i].aId()) {
+            // all overlaps with same aId are overlaps[last:i-1]std::vector<std::pair<int, bool>> matchesPointsCollectorVector;
+
+            std::vector<std::pair<int, bool>> points;
+
+            // extract start and end points at the query for all overlaps on it
+            extractPoints(points, params.minimalIdentityFactor, endClipping, last, i, aId, overlaps);
+
+
+            // do some magic to extract the largest portion of read which is covered with at least minimalReadCoverage
+            // overlaps, similar to finding part of math expression where there are at least 3 brackets around:
+            // (((()()))())
+            //    |--|      <- find this part
+
+            ReadTrim max, max2;
+            int start(0);
+            decltype(params.minimalReadCoverage) readCoverage = 0;
+            for (auto const &point: points) {
+                auto const oldReadCoverage(readCoverage);
+
+                auto const pointPosition(point.first);
+                auto const pointType(point.second);
+
+
+                pointType == MATCH_START ? ++readCoverage : --readCoverage;
+
+                if (oldReadCoverage < params.minimalReadCoverage && params.minimalReadCoverage <= readCoverage) {
+                    start = pointPosition;
+                } else if (readCoverage < params.minimalReadCoverage && params.minimalReadCoverage <= oldReadCoverage) {
+                    auto len(pointPosition - start);
+                    if (len > max.end - max.start) {
+                        max2 = max;
+                        max.start = start;
+                        max.end = pointPosition;
+                    } else if (len > max2.end - max2.start) {
+                        max2.start = start;
+                        max2.end = pointPosition;
+                    }
+                }
+            }
+
+            // if trim start < trim end consider it sane or set delete flag otherwise
+            bool isSaneTrim = max.start < max.end;
+            readTrims[aId] = ReadTrim(max.start - endClipping, max.end + endClipping, !isSaneTrim);
+            if(isSaneTrim) ++saneTrimCounter;
+
+            last = i;
+        }
+    }
+    std::cout<<"Remained "<<saneTrimCounter<<" sane trims"<<std::endl;
+}
+
+#undef IS_END
+#undef IS_START

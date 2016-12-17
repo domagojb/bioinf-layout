@@ -6,23 +6,36 @@
 
 #include <string>
 #include <sstream>
+#include "common.h"
 
 class Overlap {
 public:
 
     Overlap(
-            int aId,
-            int aLength,
-            int aStart,
-            int aEnd,
+            read_id_t aId,
+            read_size_t aLength,
+            read_size_t aStart,
+            read_size_t aEnd,
             bool isReversed,
-            int bId,
-            int bLength,
-            int bStart,
-            int bEnd,
-            int numberOfSequenceMatches,
-            int alignmentBlockLength
-    );
+            read_id_t bId,
+            read_size_t bLength,
+            read_size_t bStart,
+            read_size_t bEnd,
+            read_size_t numberOfSequenceMatches,
+            read_size_t alignmentBlockLength
+    ):
+            aId_(aId),
+            aLength_(aLength),
+            aStart_(aStart),
+            aEnd_(aEnd),
+            isReversed_(isReversed),
+            bId_(bId),
+            bLength_(bLength),
+            bStart_(bStart),
+            bEnd_(bEnd),
+            numberOfSequenceMatches_(numberOfSequenceMatches),
+            alignmentBlockLength_(alignmentBlockLength)
+    {};
 
 
 
@@ -38,16 +51,35 @@ public:
         return aStart_ < rhs.aStart_;
     }
 
+    read_id_t aId() const {return aId_;}
+    read_size_t aLength() const {return aLength_;}
+    read_size_t aStart() const {return aStart_;}
+    read_size_t aEnd() const {return aEnd_;}
+
+    bool isReversed() const {return isReversed_;}
+
+    read_id_t bId() const {return bId_;}
+    read_size_t bLength() const {return bLength_;}
+    read_size_t bStart() const {return bStart_;}
+    read_size_t bEnd() const {return bEnd_;}
+
+    read_size_t numberOfSequenceMatches() const { return numberOfSequenceMatches_;}
+    read_size_t alignmentBlockLength() const { return alignmentBlockLength_;}
+
+    read_size_t aSpan() const { return aStart_ - aEnd_; }
+    read_size_t bSpan() const { return bStart_ - bEnd_; }
+
+
 //private:
-    int aId_;
-    int aLength_;
-    int aStart_;
-    int aEnd_;
+    read_id_t aId_;
+    read_size_t aLength_;
+    read_size_t aStart_;
+    read_size_t aEnd_;
     bool isReversed_;
-    int bId_;
-    int bLength_;
-    int bStart_;
-    int bEnd_;
-    int numberOfSequenceMatches_;
-    int alignmentBlockLength_;
+    read_id_t bId_;
+    read_size_t bLength_;
+    read_size_t bStart_;
+    read_size_t bEnd_;
+    read_size_t numberOfSequenceMatches_;
+    read_size_t alignmentBlockLength_;
 };

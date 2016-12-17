@@ -4,20 +4,6 @@
 
 #include "Overlap.h"
 
-Overlap::Overlap(int aId, int aLength, int aStart, int aEnd, bool isReversed, int bId, int bLength, int bStart,
-                 int bEnd, int numberOfSequenceMatches, int alignmentBlockLength) :
-        aId_(aId),
-        aLength_(aLength),
-        aStart_(aStart),
-        aEnd_(aEnd),
-        isReversed_(isReversed),
-        bId_(bId),
-        bLength_(bLength),
-        bStart_(bStart),
-        bEnd_(bEnd),
-        numberOfSequenceMatches_(numberOfSequenceMatches),
-        alignmentBlockLength_(alignmentBlockLength)
-{}
 
 const std::string Overlap::toStringVerbose() const {
     std::stringstream ss;
