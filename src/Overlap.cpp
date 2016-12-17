@@ -30,16 +30,16 @@ const std::string Overlap::toStringVerbose() const {
 const std::string Overlap::toString() const {
     std::stringstream ss;
     ss<<aId_<<"\t";
+    ss<<aLength_<<"\t";
     ss<<aStart_<<"\t";
     ss<<aEnd_<<"\t";
-    ss<<aLength_<<"\t";
 
-    ss<<"-+"[isReversed_]<<"\t";
+    ss<<"+-"[isReversed_]<<"\t";
 
     ss<<bId_<<"\t";
+    ss<<bLength_<<"\t";
     ss<<bStart_<<"\t";
     ss<<bEnd_<<"\t";
-    ss<<bLength_<<"\t";
 
     ss<<numberOfSequenceMatches_<<"\t";
     ss<<alignmentBlockLength_;

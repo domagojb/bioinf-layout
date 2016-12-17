@@ -2,10 +2,12 @@
 // Created by Domagoj Boros on 04/12/2016.
 //
 
+#include <cmath>
 #include "OverlapUtils.h"
-#include "params.h"
+#include "IO.h"
 
-#define MATCH_START 0
+
+#define MATCH_START false
 #define MATCH_END (!(MATCH_START))
 
 static bool isChimeric(size_t start, size_t end, Overlaps& overlaps, ReadTrims& readTrims, Params& params) {
@@ -102,13 +104,13 @@ void extractPoints(
     std::sort(points.begin(), points.end());
 }
 
+
 void proposeReadTrims(
         ReadTrims &readTrims,
         const Overlaps &overlaps,
-        const Params & params,
+        const Params &params,
         bool clipEndings
-)
-{
+) {
     // isolating overlaps by their query(aId) reads and proposing cuts and deletions based on them
     // overlaps are assumed to be sorted based on their query(aId) read
     // outer for loop iterates over all overlaps and when encounters a diff between last and new query(aId) read
@@ -116,7 +118,7 @@ void proposeReadTrims(
     // therefore variable <last> remembers last time the diff has occurred
 
 
-    auto endClipping(clipEndings?params.minAllowedMatchSpan/2:0);
+    read_size_t endClipping(clipEndings ? params.minAllowedMatchSpan / 2 : 0);
     auto last(0UL);
     auto overlapsCount(overlaps.size());
     auto saneTrimCounter(0UL);
@@ -126,7 +128,7 @@ void proposeReadTrims(
         if (i == overlapsCount || aId != overlaps[i].aId()) {
             // all overlaps with same aId are overlaps[last:i-1]std::vector<std::pair<int, bool>> matchesPointsCollectorVector;
 
-            std::vector<std::pair<int, bool>> points;
+            std::vector<std::pair<read_size_t, bool>> points;
 
             // extract start and end points at the query for all overlaps on it
             extractPoints(points, params.minimalIdentityFactor, endClipping, last, i, aId, overlaps);
@@ -137,29 +139,31 @@ void proposeReadTrims(
             // (((()()))())
             //    |--|      <- find this part
 
-            ReadTrim max, max2;
-            int start(0);
-            decltype(params.minimalReadCoverage) readCoverage = 0;
+            ReadTrim max;
+            read_size_t start(0);
+            int readCoverage = 0;
             for (auto const &point: points) {
                 auto const oldReadCoverage(readCoverage);
 
-                auto const pointPosition(point.first);
-                auto const pointType(point.second);
+                read_size_t pointPosition(point.first);
+                bool pointType(point.second);
 
 
                 pointType == MATCH_START ? ++readCoverage : --readCoverage;
 
-                if (oldReadCoverage < params.minimalReadCoverage && params.minimalReadCoverage <= readCoverage) {
+                if (oldReadCoverage < params.minimalReadCoverage && params.minimalReadCoverage == readCoverage) {
+                    // if from 2 to 3
                     start = pointPosition;
-                } else if (readCoverage < params.minimalReadCoverage && params.minimalReadCoverage <= oldReadCoverage) {
-                    auto len(pointPosition - start);
+                } else if (readCoverage < params.minimalReadCoverage && params.minimalReadCoverage == oldReadCoverage) {
+                    // if from 3 to 2
+                    read_size_t len(pointPosition - start);
                     if (len > max.end - max.start) {
-                        max2 = max;
+//                        max2 = max;
                         max.start = start;
                         max.end = pointPosition;
-                    } else if (len > max2.end - max2.start) {
-                        max2.start = start;
-                        max2.end = pointPosition;
+//                    } else if (len > max2.end - max2.start) {
+//                        max2.start = start;
+//                        max2.end = pointPosition;
                     }
                 }
             }
@@ -167,48 +171,294 @@ void proposeReadTrims(
             // if trim start < trim end consider it sane or set delete flag otherwise
             bool isSaneTrim = max.start < max.end;
             readTrims[aId] = ReadTrim(max.start - endClipping, max.end + endClipping, !isSaneTrim);
-            if(isSaneTrim) ++saneTrimCounter;
+            if (isSaneTrim) ++saneTrimCounter;
 
             last = i;
         }
     }
-    std::cout<<"Remained "<<saneTrimCounter<<" sane trims"<<std::endl;
+    std::cout << "Remained " << saneTrimCounter << " sane trims" << std::endl;
 }
 
 void filterChimeric(Overlaps& overlaps, ReadTrims& readTrims, Params& params) {
 
-    size_t start = 0;
+void trimReads(Overlaps &overlaps, const ReadTrims &readTrims, Params params) {
+    Overlaps newOverlaps;
 
-    for (size_t i = 1; i <= overlaps.size(); i++) {
-        if (i == overlaps.size() || overlaps[i].aId() != overlaps[start].aId()) {
-            readTrims[overlaps[i].aId()].del = isChimeric(start, i, overlaps, readTrims, params);
-            start = i;
+    for (const auto &overlap : overlaps) {
+        auto const aTrim(readTrims.at(overlap.aId()));
+        auto const bTrim(readTrims.at(overlap.bId()));
+
+        // read A or read B is considered invalid so delete overlap between them
+        if (aTrim.del || bTrim.del) continue;
+
+        read_size_t aStartNew, aEndNew, bStartNew, bEndNew;
+
+        if (overlap.isReversed()) {
+            if (overlap.bEnd() < bTrim.end) {
+                aStartNew = overlap.aStart();
+            } else {
+                aStartNew = overlap.aStart() + (overlap.bEnd() - bTrim.end);
+            }
+            if (overlap.bStart() > bTrim.start) {
+                aEndNew = overlap.aEnd();
+            } else {
+                aEndNew = overlap.aEnd() - (bTrim.start - overlap.bStart());
+            }
+            if (overlap.aEnd() < aTrim.end) {
+                bStartNew = overlap.bStart();
+            } else {
+                bStartNew = overlap.bStart() + (overlap.aEnd() - aTrim.end);
+            }
+            if (overlap.aStart() > aTrim.start) {
+                bEndNew = overlap.bEnd();
+            } else {
+                bEndNew = overlap.bEnd() - (aTrim.start - overlap.aStart());
+            }
+        } else {
+            if (overlap.bStart() > bTrim.start) {
+                aStartNew = overlap.aStart();
+            } else {
+                aStartNew = overlap.aStart() + (bTrim.start - overlap.bStart());
+            }
+            if (overlap.bEnd() < bTrim.end) {
+                aEndNew = overlap.aEnd();
+            } else {
+                aEndNew = overlap.aEnd() - (overlap.bEnd() - bTrim.end);
+            }
+            if (overlap.aStart() > aTrim.start) {
+                bStartNew = overlap.bStart();
+            } else {
+                bStartNew = overlap.bStart() + (aTrim.start - overlap.aStart());
+            }
+            if (overlap.aEnd() < aTrim.end) {
+                bEndNew = overlap.bEnd();
+            } else {
+                bEndNew = overlap.bEnd() - (overlap.aEnd() - aTrim.end);
+            }
+        }
+        if (aStartNew > aTrim.start) {
+            aStartNew = aStartNew - aTrim.start;
+        } else {
+            aStartNew = 0;
+        }
+        if (aEndNew < aTrim.end) {
+            aEndNew = aEndNew - aTrim.start;
+        } else {
+            aEndNew = aTrim.end - aTrim.start;
+        }
+        if (bStartNew > bTrim.start) {
+            bStartNew = bStartNew - bTrim.start;
+        } else {
+            bStartNew = 0;
+        }
+        if (bEndNew < bTrim.end) {
+            bEndNew = bEndNew - bTrim.start;
+        } else {
+            bEndNew = bTrim.end - bTrim.start;
+        }
+
+//        std::cout<<aStartNew<<" "<<aEndNew<<" "<<bStartNew<<" "<<bEndNew<<std::endl;
+
+        read_size_t aSpanNew(aEndNew - aStartNew);
+        read_size_t bSpanNew(bEndNew - bStartNew);
+
+        if (aSpanNew < params.minAllowedMatchSpan || bSpanNew < params.minAllowedMatchSpan) continue;
+
+        double r = (double) (aSpanNew + bSpanNew) / (overlap.aSpan() + overlap.bSpan());
+
+        read_size_t alignmentBlockLength(static_cast<read_size_t>(std::round(overlap.alignmentBlockLength() * r)));
+        read_size_t numberOfSequenceMatches(
+                static_cast<read_size_t>(std::round(overlap.numberOfSequenceMatches() * r)));
+
+        newOverlaps.emplace_back(
+                overlap.aId(),
+                overlap.aLength(),
+                aStartNew,
+                aEndNew,
+                overlap.isReversed(),
+                overlap.bId(),
+                overlap.bLength(),
+                bStartNew,
+                bEndNew,
+                numberOfSequenceMatches,
+                alignmentBlockLength
+        );
+//        fprintf(stdout,"%s\n",aTrim.toString().c_str());
+//        fprintf(stdout,"%s\n",bTrim.toString().c_str());
+
+//        fprintf(stdout,"%s\n",newOverlaps.back().toString().c_str());
+//        logTrimmedOverlap(newOverlaps.back(),readTrims);
+
+    }
+    overlaps.swap(newOverlaps);
+
+    std::cout << "Remained " << overlaps.size() << " overlaps" << std::endl;
+}
+
+void filterReads(Overlaps &overlaps, const ReadTrims &readTrims, Params params) {
+    Overlaps newOverlaps;
+    uint64_t tot_dp = 0, tot_len = 0;
+
+    for (const auto &overlap : overlaps) {
+        auto const &aTrim(readTrims.at(overlap.aId()));
+        auto const &bTrim(readTrims.at(overlap.bId()));
+
+        if (aTrim.del || bTrim.del) continue; // todo: check if necessary, I think not
+
+        OverlapClassification overlapClassification;
+        Edge edge;
+        classifyOverlapAndMeasureItsLength(
+                overlapClassification,
+                edge,
+                overlap,
+                aTrim.length(),
+                bTrim.length(),
+                params.maximalOverhangLength * 1.5,
+                0.5,//params.mappingLengthRatio,
+                params.minimalOverlap / 2
+        );
+        switch (overlapClassification) {
+            case OVERLAP_INTERNAL_MATCH:
+            case OVERLAP_SHORT:
+                break;
+            case OVERLAP_A_CONTAINED:
+                tot_dp += aTrim.length();
+                newOverlaps.emplace_back(overlap);
+                break;
+            case OVERLAP_B_CONTAINED:
+                tot_dp += bTrim.length();
+                newOverlaps.emplace_back(overlap);
+                break;
+            case OVERLAP_A_TO_B:
+            case OVERLAP_B_TO_A:
+                newOverlaps.emplace_back(overlap);
+                tot_dp += edge.overlapLength;
+                break;
         }
     }
-}
 
-void filterContained(Overlaps& overlaps, ReadTrims& readTrims, Params& params) {
+    overlaps.swap(newOverlaps);
 
-    for (auto& o : overlaps) {
-        int alen = readTrims[o.aId()].end - readTrims[o.aId()].start;
-        int blen = readTrims[o.bId()].end - readTrims[o.bId()].start;
-        OverlapClassification c;
-        read_size_t olen;
-        Edge e;
-        classifyOverlapAndMeasureItsLength(c, olen, e, o, alen, blen, params.maxOverhang, 0, 0); // TODO BROJKE
-        if (c == PEDER_1) readTrims[o.aId()].del = true;
-        else if (c == PEDER_2) readTrims[o.bId()].del = true;
+    for (size_t i = 1; i <= overlaps.size(); ++i) {
+        read_id_t aIdCur = overlaps[i].aId();
+        read_id_t aIdLast = overlaps[i - 1].aId();
+        if (i == overlaps.size() || aIdCur != aIdLast) {
+            tot_len += readTrims.at(aIdLast).length();
+        }
     }
 
-    Overlaps filtered;
+    double cov = (double) tot_dp / tot_len;
 
-    for (auto& o : overlaps) {
-        if (readTrims[o.aId()].del || readTrims[o.bId()].del) continue;
-        filtered.push_back(o);
-    }
+    std::cout << tot_len << std::endl;
+    std::cout << tot_dp << std::endl;
+    fprintf(stdout, "%ld hits remain after filtering; crude coverage after filtering: %.2f\n", overlaps.size(), cov);
 
-    overlaps.swap(filtered);
 }
 
-#undef IS_END
-#undef IS_START
+void classifyOverlapAndMeasureItsLength(
+        OverlapClassification &overlapClassification,
+        Edge &edge, const Overlap overlap,
+        read_size_t aLength,
+        read_size_t bLength,
+        read_size_t maximalOverhangLength,
+        float mappingLengthRatio,
+        read_size_t minimalOverlap
+)
+{
+    read_size_t bLengthLeft, bLengthRight, overhangLeft, overhangRight;
+    read_size_t aStart(overlap.aStart());
+
+    // daj mi manje overhenge
+    if (overlap.isReversed()) {
+        bLengthLeft = bLength - overlap.bEnd();
+        bLengthRight = overlap.bStart();
+    } else {
+        bLengthLeft = overlap.bStart();
+        bLengthRight = bLength - overlap.bEnd();
+    }
+    if (aStart < bLengthLeft) {
+        overhangLeft = aStart;
+    } else {
+        overhangLeft = bLengthLeft;
+    }
+    if (aLength - overlap.aEnd() < bLengthRight) {
+        overhangRight = aLength - overlap.aEnd();
+    } else {
+        overhangRight = bLengthRight;
+    }
+
+
+    if (overhangLeft > maximalOverhangLength || overhangRight > maximalOverhangLength) {
+        overlapClassification = OVERLAP_INTERNAL_MATCH;
+        return;
+    }
+
+    if (overlap.aEnd() - aStart < (overlap.aEnd() - aStart + overhangLeft + overhangRight) * mappingLengthRatio) {
+        overlapClassification = OVERLAP_INTERNAL_MATCH;
+        return;
+    }
+
+    if (aStart <= bLengthLeft && aLength - overlap.aEnd() <= bLengthRight) {
+        overlapClassification = OVERLAP_A_CONTAINED;
+        return;
+    } else if (aStart >= bLengthLeft && aLength - overlap.aEnd() >= bLengthRight) {
+        overlapClassification = OVERLAP_B_CONTAINED;
+        return;
+    } else if (aStart > bLengthLeft) {
+        edge.aIsReversed = false;
+        edge.bIsReversed = overlap.isReversed();
+        edge.overlapLength = aStart - bLengthLeft;
+    } else {
+        edge.aIsReversed = true;
+        edge.bIsReversed = !overlap.isReversed();
+        edge.overlapLength = (aLength - overlap.aEnd()) - bLengthRight;
+    }
+    if (overlap.aEnd() - aStart + overhangLeft + overhangRight < minimalOverlap ||
+        overlap.bEnd() - overlap.bStart() + overhangLeft + overhangRight < minimalOverlap) {
+        overlapClassification = OVERLAP_SHORT;
+        return;
+    }
+    overlapClassification = OVERLAP_A_TO_B; // or BTOA
+
+    edge.aId = overlap.aId();
+    edge.bId = overlap.bId();
+
+    edge.del = 0;
+    edge.numberOfSequenceMatches = overlap.numberOfSequenceMatches();
+    edge.numberOfSequenceMatchesRatio = static_cast<float>(overlap.numberOfSequenceMatches()) / overlap.alignmentBlockLength();
+}
+
+    void filterChimeric(Overlaps& overlaps, ReadTrims& readTrims, Params& params) {
+
+        size_t start = 0;
+
+        for (size_t i = 1; i <= overlaps.size(); i++) {
+            if (i == overlaps.size() || overlaps[i].aId() != overlaps[start].aId()) {
+                readTrims[overlaps[i].aId()].del = isChimeric(start, i, overlaps, readTrims, params);
+                start = i;
+            }
+        }
+    }
+
+    void filterContained(Overlaps& overlaps, ReadTrims& readTrims, Params& params) {
+
+        for (auto& o : overlaps) {
+            int alen = readTrims[o.aId()].end - readTrims[o.aId()].start;
+            int blen = readTrims[o.bId()].end - readTrims[o.bId()].start;
+            OverlapClassification c;
+            read_size_t olen;
+            Edge e;
+            classifyOverlapAndMeasureItsLength(c, olen, e, o, alen, blen, params.maxOverhang, 0, 0); // TODO BROJKE
+            if (c == PEDER_1) readTrims[o.aId()].del = true;
+            else if (c == PEDER_2) readTrims[o.bId()].del = true;
+        }
+
+        Overlaps filtered;
+
+        for (auto& o : overlaps) {
+            if (readTrims[o.aId()].del || readTrims[o.bId()].del) continue;
+            filtered.push_back(o);
+        }
+
+        overlaps.swap(filtered);
+    }

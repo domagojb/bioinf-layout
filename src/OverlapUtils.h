@@ -16,3 +16,21 @@ void proposeReadTrims(
 
 void filterChimeric(Overlaps& overlaps, ReadTrims& readTrims, Params& params);
 void filterContained(Overlaps& overlaps, ReadTrims& readTrims, Params& params);
+
+void trimReads(Overlaps &overlaps, const ReadTrims &readTrims, Params params);
+
+
+
+void classifyOverlapAndMeasureItsLength(
+        OverlapClassification &overlapClassification,
+        Edge &edge,
+        const Overlap overlap,
+        read_size_t aLength,
+        read_size_t bLength,
+        read_size_t maximalOverhangLength,
+        float mappingLengthRatio,
+        read_size_t minimalOverlap
+);
+
+
+void filterReads(Overlaps &overlaps, const ReadTrims &readTrims, Params params);

@@ -15,6 +15,7 @@ typedef int read_size_t; // read size type (aStart, aEnd...)
 #include "Overlap.h"
 #include "Read.h"
 #include "ReadTrim.h"
+#include "Graph.h"
 
 class Overlap;
 class Read;
@@ -23,3 +24,13 @@ class ReadTrim;
 typedef std::vector<Overlap> Overlaps;
 typedef std::map<read_id_t,Read> Reads;
 typedef std::map<read_id_t,ReadTrim> ReadTrims;
+
+
+enum OverlapClassification{
+    OVERLAP_INTERNAL_MATCH,
+    OVERLAP_SHORT,
+    OVERLAP_A_CONTAINED,
+    OVERLAP_B_CONTAINED,
+    OVERLAP_A_TO_B,
+    OVERLAP_B_TO_A,
+};
