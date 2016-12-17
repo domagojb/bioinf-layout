@@ -14,11 +14,13 @@ void proposeReadTrims(
         bool clipEndings
 );
 
-void filterChimeric(Overlaps& overlaps, ReadTrims& readTrims, Params& params);
-void filterContained(Overlaps& overlaps, ReadTrims& readTrims, Params& params);
+void filterChimeric(const Overlaps& overlaps, ReadTrims& readTrims, const Params& params);
+void filterContained(Overlaps& overlaps, ReadTrims& readTrims, const Params& params);
 
-void trimReads(Overlaps &overlaps, const ReadTrims &readTrims, Params params);
+void trimReads(Overlaps &overlaps, const ReadTrims &readTrims, const Params params);
 
+
+void mergeTrims(ReadTrims & readTrims, const ReadTrims& readTrims2);
 
 
 void classifyOverlapAndMeasureItsLength(
@@ -33,4 +35,4 @@ void classifyOverlapAndMeasureItsLength(
 );
 
 
-void filterReads(Overlaps &overlaps, const ReadTrims &readTrims, Params params);
+void filterReads(Overlaps &overlaps, const ReadTrims &readTrims,const  Params params);

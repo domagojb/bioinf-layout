@@ -170,7 +170,7 @@ void loadPAF(Overlaps &overlaps, Reads &reads, const std::string &path, const Pa
                 alignmentBlockLength
         );
 
-        reads[aId] = Read(aId, aLength,0, false);
+        reads.emplace(std::piecewise_construct,std::forward_as_tuple(aId),std::forward_as_tuple(aId, aLength));
 
         if (aId != bId) {
 
@@ -189,7 +189,7 @@ void loadPAF(Overlaps &overlaps, Reads &reads, const std::string &path, const Pa
                     alignmentBlockLength
             );
 
-            reads[bId] = Read(bId, bLength, 0, false);
+            reads.emplace(std::piecewise_construct,std::forward_as_tuple(bId),std::forward_as_tuple(bId, bLength));
 
         }
 

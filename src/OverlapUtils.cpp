@@ -5,69 +5,95 @@
 #include <cmath>
 #include "OverlapUtils.h"
 #include "IO.h"
+#include "params.h"
 
 
 #define MATCH_START false
 #define MATCH_END (!(MATCH_START))
 
-static bool isChimeric(size_t start, size_t end, Overlaps& overlaps, ReadTrims& readTrims, Params& params) {
-
+static bool isChimeric(size_t start, size_t end, const Overlaps& overlaps, const ReadTrims& readTrims,  const Params& params) {
     std::vector<std::pair<int, bool>> lefties; // checks left overhang
     std::vector<std::pair<int, bool>> righties; // checks right overhand
     for (size_t i = start; i < end; i++) {
         const Overlap& o = overlaps[i];
-        int alen = readTrims[o.aId()].end - readTrims[o.aId()].start;
-        int blen = readTrims[o.bId()].end - readTrims[o.bId()].start;
 
+        int alen = readTrims.at(o.aId()).length();
+        int blen = readTrims.at(o.bId()).length();
+//        printf("%d %d\n",alen,blen);
         int alhang = o.aStart();
         int arhang = alen - o.aEnd();
 
         int blhang = o.isReversed() ? blen - o.bEnd() : o.bStart();
         int brhang = o.isReversed() ? o.bStart() : blen - o.bEnd();
 
-        if (alhang < params.maxOverhang && alhang < blhang) {
-            if (arhang > params.maxOverhang && brhang > params.maxOverhang) {
+//        printf("%d %d %d %d %d %d\n",alen,blen,alhang,arhang,blhang,brhang);
+
+
+        if (alhang < params.maximalOverhangLength && alhang < blhang) {
+            if (arhang > params.maximalOverhangLength && brhang > params.maximalOverhangLength) {
                 lefties.emplace_back(arhang, true);
-            } else if (arhang > brhang && brhang < params.maxOverhang) {
+//                printf("arhang true\n");
+            } else if (arhang > brhang && brhang < params.maximalOverhangLength) {
                 lefties.emplace_back(arhang, false);
+//                printf("arhang false\n");
+//            } else {
+//                printf("skip r\n");
             }
-        } else if (arhang < params.maxOverhang && arhang < brhang) {
-            if (alhang > params.maxOverhang && brhang > params.maxOverhang) {
+        } else if (arhang < params.maximalOverhangLength && arhang < brhang) {
+            if (alhang > params.maximalOverhangLength && blhang > params.maximalOverhangLength) {
+//                printf("alhang true\n");
                 righties.emplace_back(alhang, true);
-            } else if (alhang > blhang && blhang < params.maxOverhang) {
+            } else if (alhang > blhang && blhang < params.maximalOverhangLength) {
                 righties.emplace_back(alhang, false);
+//                printf("alhang false\n");
+//            } else {
+//                printf("skip l\n");
             }
+//        } else {
+//            printf("skip\n");
         }
     }
-
     if (lefties.size() < params.minimalReadCoverage) return false;
     if (righties.size() < params.minimalReadCoverage) return false;
 
     std::sort(lefties.begin(), lefties.end());
 
-    std::sort(rightie.begin(), righties.end());
+    std::sort(righties.begin(), righties.end());
 
-    int max;
+
+
+
+    int max=0;
     int ac = 0;
     int bc = 0;
     for (const auto& pair : lefties) {
-        if (pair.second) ac++;
-        else bc++;
-        max = max > ac - bc ? mac : ac - bc;
+//        std::cout<<pair.first<<" "<<pair.second<<std::endl;
+        if (pair.second) (ac++);
+        else (bc++);
+        max = max > ac - bc ? max : ac - bc;
     }
 
-    if (max >= params.minimalReadCoverage) return true;
+    if (max >= params.minimalReadCoverage) {
+        return true;
+    }
+
+//    std::cout<<lefties.size()<<std::endl;
+//    std::cout<<righties.size()<<std::endl;
 
     max = 0;
     ac = 0;
     bc = 0;
     for (const auto& pair : righties) {
+//        std::cout<<pair.first<<" "<<pair.second<<std::endl;
         if (pair.second) ac++;
         else bc++;
-        max = max > ac - bc ? mac : ac - bc;
+        max = max > ac - bc ? max : ac - bc;
     }
 
-    if (max >= params.minimalReadCoverage) return true;
+    if (max >= params.minimalReadCoverage) {
+        return true;
+    }
+    return false;
 }
 
 void extractPoints(
@@ -179,9 +205,8 @@ void proposeReadTrims(
     std::cout << "Remained " << saneTrimCounter << " sane trims" << std::endl;
 }
 
-void filterChimeric(Overlaps& overlaps, ReadTrims& readTrims, Params& params) {
 
-void trimReads(Overlaps &overlaps, const ReadTrims &readTrims, Params params) {
+void trimReads(Overlaps &overlaps, const ReadTrims &readTrims, const  Params params) {
     Overlaps newOverlaps;
 
     for (const auto &overlap : overlaps) {
@@ -295,7 +320,7 @@ void trimReads(Overlaps &overlaps, const ReadTrims &readTrims, Params params) {
     std::cout << "Remained " << overlaps.size() << " overlaps" << std::endl;
 }
 
-void filterReads(Overlaps &overlaps, const ReadTrims &readTrims, Params params) {
+void filterReads(Overlaps &overlaps, const ReadTrims &readTrims, const  Params params) {
     Overlaps newOverlaps;
     uint64_t tot_dp = 0, tot_len = 0;
 
@@ -349,8 +374,8 @@ void filterReads(Overlaps &overlaps, const ReadTrims &readTrims, Params params) 
 
     double cov = (double) tot_dp / tot_len;
 
-    std::cout << tot_len << std::endl;
-    std::cout << tot_dp << std::endl;
+//    std::cout << tot_len << std::endl;
+//    std::cout << tot_dp << std::endl;
     fprintf(stdout, "%ld hits remain after filtering; crude coverage after filtering: %.2f\n", overlaps.size(), cov);
 
 }
@@ -428,37 +453,79 @@ void classifyOverlapAndMeasureItsLength(
     edge.numberOfSequenceMatchesRatio = static_cast<float>(overlap.numberOfSequenceMatches()) / overlap.alignmentBlockLength();
 }
 
-    void filterChimeric(Overlaps& overlaps, ReadTrims& readTrims, Params& params) {
+void filterChimeric(const Overlaps& overlaps, ReadTrims& readTrims,  const Params& params) {
 
-        size_t start = 0;
+    size_t start = 0;
 
-        for (size_t i = 1; i <= overlaps.size(); i++) {
-            if (i == overlaps.size() || overlaps[i].aId() != overlaps[start].aId()) {
-                readTrims[overlaps[i].aId()].del = isChimeric(start, i, overlaps, readTrims, params);
-                start = i;
+    size_t chimericCnter = 0;
+
+    for (size_t i = 1; i <= overlaps.size(); i++) {
+        if (i == overlaps.size() || overlaps[i].aId() != overlaps[start].aId()) {
+            bool b = isChimeric(start, i, overlaps, readTrims, params);
+            if(b){
+                ++chimericCnter;
             }
+            readTrims[overlaps[i].aId()].del = b;
+            start = i;
         }
     }
 
-    void filterContained(Overlaps& overlaps, ReadTrims& readTrims, Params& params) {
+    std::cout<<"Found "<<chimericCnter<<" chimeric reads"<<std::endl;
+}
 
-        for (auto& o : overlaps) {
-            int alen = readTrims[o.aId()].end - readTrims[o.aId()].start;
-            int blen = readTrims[o.bId()].end - readTrims[o.bId()].start;
-            OverlapClassification c;
-            read_size_t olen;
-            Edge e;
-            classifyOverlapAndMeasureItsLength(c, olen, e, o, alen, blen, params.maxOverhang, 0, 0); // TODO BROJKE
-            if (c == PEDER_1) readTrims[o.aId()].del = true;
-            else if (c == PEDER_2) readTrims[o.bId()].del = true;
+void filterContained(Overlaps& overlaps, ReadTrims& readTrims, const Params& params) {
+    size_t tcont=0,qcont=0;
+
+    for (auto& overlap : overlaps) {
+        OverlapClassification overlapClassification;
+        Edge edge;
+        classifyOverlapAndMeasureItsLength(
+                overlapClassification,
+                edge,
+                overlap,
+                readTrims[overlap.aId()].length(),
+                readTrims[overlap.bId()].length(),
+                params.maximalOverhangLength,
+                params.mappingLengthRatio,
+                params.minimalOverlap
+        );
+        if (overlapClassification == OVERLAP_A_CONTAINED) {
+            readTrims[overlap.aId()].del = true;
+            qcont++;
         }
-
-        Overlaps filtered;
-
-        for (auto& o : overlaps) {
-            if (readTrims[o.aId()].del || readTrims[o.bId()].del) continue;
-            filtered.push_back(o);
+        else if (overlapClassification == OVERLAP_B_CONTAINED) {
+            readTrims[overlap.bId()].del = true;
+            tcont++;
         }
-
-        overlaps.swap(filtered);
     }
+
+    // remove overlaps whith deleted reads (sry but I had to practise stl :P )
+    overlaps.erase(std::remove_if(overlaps.begin(),overlaps.end(),[&readTrims](const Overlap & o){ return readTrims[o.aId()].del || readTrims[o.bId()].del;}),overlaps.end());
+
+
+    // apparently there is no better way to filter a dict, pythonic way would be dict = filter(lambda x: x.second.del,dict), but hey, dis iz cpp
+    for(auto iter(readTrims.begin()); iter != readTrims.end(); ) {
+        if (iter->second.del) {
+            readTrims.erase(iter++);
+        } else {
+            ++iter;
+        }
+    }
+
+    std::cout << "Remained " << overlaps.size() << " overlaps" << std::endl;
+    std::cout << "Remained " << readTrims.size() << " reads" << std::endl;
+}
+
+void mergeTrims(ReadTrims &readTrims, const ReadTrims &readTrims2) {
+    for (auto &pair : readTrims) {
+        read_id_t id(pair.first);
+
+        ReadTrim & readTrim(pair.second);
+        if(readTrims2.find(id)==readTrims2.end()) continue;
+        const ReadTrim & readTrim2(readTrims2.at(id));
+
+        readTrim.end = readTrim.start + readTrim2.end;
+        readTrim.start += readTrim2.start;
+
+    }
+}

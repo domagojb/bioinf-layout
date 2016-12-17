@@ -21,7 +21,31 @@ int main() {
     std::cout << "3) Trimming reads" << std::endl;
     trimReads(overlaps, readTrims, params);
 
+    std::cout << "3) Filtering reads" << std::endl;
     filterReads(overlaps, readTrims, params);
+
+    std::cout << "4) Proposing read trims" << std::endl;
+    ReadTrims readTrims2;
+    proposeReadTrims(readTrims2, overlaps, params, true);
+
+    std::cout << "5) Trimming reads" << std::endl;
+    trimReads(overlaps, readTrims2, params);
+
+    mergeTrims(readTrims,readTrims2);
+
+
+    std::cout << "6) Chimering reads" << std::endl;
+    filterChimeric(overlaps,readTrims,params);
+
+    std::cout << "7) Filtering contained reads" << std::endl;
+    filterContained(overlaps,readTrims,params);
+
+//
+//    for (auto &pair : readTrims) {
+//        std::cout<<pair.first+100000<<" "<<pair.second.toString()<<std::endl;
+//    }
+//exit(0);
+
 
     logTrimmedOverlaps(overlaps, readTrims);
 

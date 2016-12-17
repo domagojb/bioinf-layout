@@ -12,7 +12,7 @@ public:
 
     const std::string toString() const {
         std::stringstream ss;
-        ss << start << "-" << end << " " << "NY"[del];
+        ss << start << "-" << end << " " << " Y"[del];
         return ss.str();
     }
 
