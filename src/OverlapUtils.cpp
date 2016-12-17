@@ -5,9 +5,68 @@
 #include "OverlapUtils.h"
 #include "params.h"
 
-
 #define MATCH_START 0
 #define MATCH_END (!(MATCH_START))
+
+static bool isChimeric(size_t start, size_t end, Overlaps& overlaps, ReadTrims& readTrims, Params& params) {
+
+    std::vector<std::pair<int, bool>> lefties; // checks left overhang
+    std::vector<std::pair<int, bool>> righties; // checks right overhand
+    for (size_t i = start; i < end; i++) {
+        const Overlap& o = overlaps[i];
+        int alen = readTrims[o.aId()].end - readTrims[o.aId()].start;
+        int blen = readTrims[o.bId()].end - readTrims[o.bId()].start;
+
+        int alhang = o.aStart();
+        int arhang = alen - o.aEnd();
+
+        int blhang = o.isReversed() ? blen - o.bEnd() : o.bStart();
+        int brhang = o.isReversed() ? o.bStart() : blen - o.bEnd();
+
+        if (alhang < params.maxOverhang && alhang < blhang) {
+            if (arhang > params.maxOverhang && brhang > params.maxOverhang) {
+                lefties.emplace_back(arhang, true);
+            } else if (arhang > brhang && brhang < params.maxOverhang) {
+                lefties.emplace_back(arhang, false);
+            }
+        } else if (arhang < params.maxOverhang && arhang < brhang) {
+            if (alhang > params.maxOverhang && brhang > params.maxOverhang) {
+                righties.emplace_back(alhang, true);
+            } else if (alhang > blhang && blhang < params.maxOverhang) {
+                righties.emplace_back(alhang, false);
+            }
+        }
+    }
+
+    if (lefties.size() < params.minimalReadCoverage) return false;
+    if (righties.size() < params.minimalReadCoverage) return false;
+
+    std::sort(lefties.begin(), lefties.end());
+
+    std::sort(rightie.begin(), righties.end());
+
+    int max;
+    int ac = 0;
+    int bc = 0;
+    for (const auto& pair : lefties) {
+        if (pair.second) ac++;
+        else bc++;
+        max = max > ac - bc ? mac : ac - bc;
+    }
+
+    if (max >= params.minimalReadCoverage) return true;
+
+    max = 0;
+    ac = 0;
+    bc = 0;
+    for (const auto& pair : righties) {
+        if (pair.second) ac++;
+        else bc++;
+        max = max > ac - bc ? mac : ac - bc;
+    }
+
+    if (max >= params.minimalReadCoverage) return true;
+}
 
 void extractPoints(
         std::vector<std::pair<int, bool>> &points,
@@ -42,7 +101,6 @@ void extractPoints(
 
     std::sort(points.begin(), points.end());
 }
-
 
 void proposeReadTrims(
         ReadTrims &readTrims,
@@ -115,6 +173,18 @@ void proposeReadTrims(
         }
     }
     std::cout<<"Remained "<<saneTrimCounter<<" sane trims"<<std::endl;
+}
+
+void filterChimeric(Overlaps& overlaps, ReadTrims& readTrims, Params& params) {
+
+    size_t start = 0;
+
+    for (size_t i = 1; i <= overlaps.size(); i++) {
+        if (i == overlaps.size() || overlaps[i].aId() != overlaps[start].aId()) {
+            readTrims[overlaps[i].aId()].del = isChimeric(start, i, overlaps, readTrims, params);
+            start = i;
+        }
+    }
 }
 
 #undef IS_END

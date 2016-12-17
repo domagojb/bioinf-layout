@@ -13,3 +13,5 @@ void proposeReadTrims(
         const Params & params,
         bool clipEndings
 );
+
+void filterChimeric(Overlaps& overlaps, ReadTrims& readTrims, Params& params);

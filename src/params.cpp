@@ -12,5 +12,7 @@ Params getDefaultParams() {
     params.minimalReadCoverage = 3;
     params.minimalIdentityFactor = 0.05f;
 
+    params.maxOverhang = 1000;
+
     return params;
 }

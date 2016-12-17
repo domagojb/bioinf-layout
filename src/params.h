@@ -11,6 +11,8 @@ typedef struct {
     read_size_t minAllowedNumberOfSequenceMatches; // bp
     read_size_t minimalReadCoverage; //bp
     float minimalIdentityFactor;
+
+    read_size_t maxOverhang;
 } Params;
 
 Params getDefaultParams();
