@@ -54,6 +54,8 @@ int main() {
     Graph g;
     generateGraph(g, overlaps, readTrims, params);
 
+    filterTransitiveEdges(g, 1000);
+
 //    std::cout << "Left with " << overlaps.size() << " trimmed overlaps" << std::endl;
 
 //

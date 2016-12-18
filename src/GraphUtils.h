@@ -7,3 +7,5 @@
 #include "Graph.h"
 
 void generateGraph(Graph &g, const Overlaps &overlaps, const ReadTrims& readTrims, Params &params);
+
+void filterTransitiveEdges(Graph& g, read_size_t FUZZ);
