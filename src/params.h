@@ -12,7 +12,10 @@ typedef struct {
     read_size_t minimalReadCoverage; //bp
     float minimalIdentityFactor;
 
-    read_size_t maxOverhang;
+    read_size_t maximalOverhangLength; //bp
+    float mappingLengthRatio;
+    read_size_t minimalOverlap; //bp
+
 } Params;
 
 Params getDefaultParams();

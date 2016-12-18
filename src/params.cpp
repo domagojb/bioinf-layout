@@ -11,8 +11,8 @@ Params getDefaultParams() {
     params.minAllowedNumberOfSequenceMatches = 100;
     params.minimalReadCoverage = 3;
     params.minimalIdentityFactor = 0.05f;
-
-    params.maxOverhang = 1000;
-
+    params.maximalOverhangLength = 1000; //bp
+    params.mappingLengthRatio = 0.8;
+    params.minimalOverlap = 2000; //bp
     return params;
 }

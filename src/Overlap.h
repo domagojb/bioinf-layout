@@ -66,11 +66,11 @@ public:
     read_size_t numberOfSequenceMatches() const { return numberOfSequenceMatches_;}
     read_size_t alignmentBlockLength() const { return alignmentBlockLength_;}
 
-    read_size_t aSpan() const { return aStart_ - aEnd_; }
-    read_size_t bSpan() const { return bStart_ - bEnd_; }
+    read_size_t aSpan() const { return aEnd_ - aStart_; }
+    read_size_t bSpan() const { return bEnd_ - bStart_; }
 
 
-//private:
+private:
     read_id_t aId_;
     read_size_t aLength_;
     read_size_t aStart_;

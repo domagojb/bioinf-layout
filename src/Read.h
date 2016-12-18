@@ -4,16 +4,17 @@
 
 #pragma once
 
+#include "common.h"
 #include <string>
 
 class Read {
 public:
-    Read(int id, int length, int aux, bool del) : id_(id), length_(length), aux_(aux), del_(del) {};
-    Read() : Read(0,0,0, false) {};
+    Read(int id, int length) : id_(id), length_(length) {};
+
+    Read() : Read(0, 0) {};
 
 private:
-    int id_;
-    int length_;
-    int aux_;
-    bool del_;
+    // we don't need no del nor aux (if you think you need it JURE wrong)
+    const read_id_t id_;
+    const read_size_t length_;
 };

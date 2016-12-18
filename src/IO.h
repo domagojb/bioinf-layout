@@ -43,3 +43,8 @@ void loadPAF(Overlaps &overlaps, Reads &reads, const std::string &path, const Pa
 
 
 void logOverlaps(const Overlaps& overlaps);
+
+
+void logTrimmedOverlap(const Overlap &overlap, const ReadTrims &readTrims);
+
+void logTrimmedOverlaps(const Overlaps &overlaps, const ReadTrims &readTrims);

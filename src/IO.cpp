@@ -99,7 +99,7 @@ void writeOverlapsToSIF(const std::string &path, const Overlaps &overlaps) {
 
     char edgeType[2] = {0, 0};
     for (const auto & overlap : overlaps) {
-        os<< overlap.aId_<<" "<<"stipe"<<" "<<overlap.bId_<<std::endl;
+        os<< overlap.aId()<<" "<<"stipe"<<" "<<overlap.bId()<<std::endl;
 //        edgeType[0] = (overlap->isBrc()) ? 'a' : 'b';
 //        os << overlap->getAId() << " " << edgeType << " " << overlap->getBId() << std::endl;
     }
@@ -153,7 +153,7 @@ void loadPAF(Overlaps &overlaps, Reads &reads, const std::string &path, const Pa
         if (numberOfSequenceMatches < params.minAllowedNumberOfSequenceMatches) continue;
 
 
-        bool isReversed(relativeStrand == '+');
+        bool isReversed(relativeStrand == '-');
 
         // add a->b
         overlaps.emplace_back(
@@ -170,7 +170,7 @@ void loadPAF(Overlaps &overlaps, Reads &reads, const std::string &path, const Pa
                 alignmentBlockLength
         );
 
-        reads[aId] = Read(aId, aLength,0, false);
+        reads.emplace(std::piecewise_construct,std::forward_as_tuple(aId),std::forward_as_tuple(aId, aLength));
 
         if (aId != bId) {
 
@@ -189,7 +189,7 @@ void loadPAF(Overlaps &overlaps, Reads &reads, const std::string &path, const Pa
                     alignmentBlockLength
             );
 
-            reads[bId] = Read(bId, bLength, 0, false);
+            reads.emplace(std::piecewise_construct,std::forward_as_tuple(bId),std::forward_as_tuple(bId, bLength));
 
         }
 
@@ -204,7 +204,28 @@ void loadPAF(Overlaps &overlaps, Reads &reads, const std::string &path, const Pa
 }
 
 void logOverlaps(const Overlaps &overlaps) {
+
+    fprintf(stdout,"aId\taLen\taS\taE\tor\tbLen\tbS\tbE\tml\tbl\n");
+
     for(auto const & overlap:overlaps){
         fprintf(stdout,"%s\n",overlap.toString().c_str());
+    }
+}
+
+void logTrimmedOverlap(const Overlap &overlap, const ReadTrims &readTrims) {
+
+    const ReadTrim & aTrim(readTrims.at(overlap.aId()));
+    const ReadTrim & bTrim(readTrims.at(overlap.bId()));
+
+    fprintf(stdout,"%05d:%05d-%05d\t%5d\t%5d\t%5d\t%c\t%05d:%05d-%05d\t%5d\t%5d\t%5d\t%5d\t%5d\t255\n",overlap.aId(), aTrim.start + 1, aTrim.end, aTrim.length(), overlap.aStart(), overlap.aEnd(),
+            "+-"[overlap.isReversed()], overlap.bId(), bTrim.start + 1, bTrim.end, bTrim.length(), overlap.bStart(), overlap.bEnd(), overlap.numberOfSequenceMatches(), overlap.alignmentBlockLength());
+}
+
+void logTrimmedOverlaps(const Overlaps &overlaps, const ReadTrims &readTrims) {
+
+    fprintf(stdout,"aId\taLen\taS\taE\tor\tbLen\tbS\tbE\tml\tbl\n");
+
+    for(auto const & overlap:overlaps){
+        logTrimmedOverlap(overlap,readTrims);
     }
 }
