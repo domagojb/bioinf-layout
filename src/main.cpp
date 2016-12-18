@@ -4,6 +4,7 @@
 
 #include "IO.h"
 #include "OverlapUtils.h"
+#include "GraphUtils.h"
 
 int main() {
 
@@ -48,6 +49,10 @@ int main() {
 
 
     logTrimmedOverlaps(overlaps, readTrims);
+
+    std::cout << "8) Generating graph" << std::endl;
+    Graph g;
+    generateGraph(g, overlaps, readTrims, params);
 
 //    std::cout << "Left with " << overlaps.size() << " trimmed overlaps" << std::endl;
 

@@ -382,14 +382,14 @@ void filterReads(Overlaps &overlaps, const ReadTrims &readTrims, const  Params p
 
 void classifyOverlapAndMeasureItsLength(
         OverlapClassification &overlapClassification,
-        Edge &edge, const Overlap overlap,
+        Edge &edge,
+        const Overlap overlap,
         read_size_t aLength,
         read_size_t bLength,
         read_size_t maximalOverhangLength,
         float mappingLengthRatio,
         read_size_t minimalOverlap
-)
-{
+) {
     read_size_t bLengthLeft, bLengthRight, overhangLeft, overhangRight;
     read_size_t aStart(overlap.aStart());
 

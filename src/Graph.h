@@ -2,10 +2,9 @@
 
 #include "common.h"
 
-class Edge{
+class Edge {
+
 public:
-
-
     read_size_t aId;
     read_size_t bId;
     bool aIsReversed;
