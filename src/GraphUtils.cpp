@@ -3,7 +3,9 @@
 //
 
 #include "OverlapUtils.h"
-
+#include <vector>
+#include <algorithm>
+#include <map>
 #include "GraphUtils.h"
 
 void generateGraph(Graph &g, const Overlaps &overlaps, const ReadTrims &readTrims, Params &params) {
@@ -127,4 +129,56 @@ void removeAsymetricEdges(Graph &g) {
     }
 
     std::cout << "Removing " << cnt << " asymetric edges" << std::endl;
+}
+
+int countIncoming(Graph& g, std::pair<read_id_t, bool> read) {
+    return -1;
+}
+
+void popBubbles(Graph& g, const int maxDistance) {
+    int v, nvert = g.size() * 2;
+
+    std::vector<std::pair<read_id_t, bool>> S;
+
+    for(const auto& re: g) {
+        auto& read0 = re.first;
+        if(re.second.size() < 2) continue;
+
+        std::map< std::pair<read_id_t, bool>, int > distances;
+        distances[read0] = 0;
+        std::map< std::pair<read_id_t, bool>, int > unvisitedIncoming;
+
+        S.push_back(read0);
+        int p = 0;
+
+        while(S.size() > 0) {
+            auto& read = S.back();
+            S.pop_back();
+
+            for(const auto& edge: g[read]) {
+                if(edge.bId == read0.first) break;
+
+                auto& b = std::make_pair(edge.bId, edge.bIsReversed);
+
+                if(distances[read] + edge.overlapLength > maxDistance) break;
+
+                if(distances.count(b) == 0) {
+                    unvisitedIncoming[b] = countIncoming(g, b);
+                    ++p;
+                    distances[b] = distances[read] + edge.overlapLength;
+                } else if(distances[read] + edge.overlapLength < distances[b]) {
+                    distances[b] = distances[read] + edge.overlapLength;
+                }
+
+                --unvisitedIncoming[b];
+                if(unvisitedIncoming[b] == 0) {
+                    if(g[b] != 0) S.push_back(b);
+                    --p;
+                }
+            }
+//           if(S.size() == 1 && p == 0) return S.back();
+        }
+
+    }
+
 }
