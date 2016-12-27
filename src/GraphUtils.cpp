@@ -158,7 +158,7 @@ void popBubbles(Graph& g, const int maxDistance) {
             for(const auto& edge: g[read]) {
                 if(edge.bId == read0.first) break;
 
-                auto& b = std::make_pair(edge.bId, edge.bIsReversed);
+                auto b = std::make_pair(edge.bId, edge.bIsReversed);
 
                 if(distances[read] + edge.overlapLength > maxDistance) break;
 
@@ -172,7 +172,7 @@ void popBubbles(Graph& g, const int maxDistance) {
 
                 --unvisitedIncoming[b];
                 if(unvisitedIncoming[b] == 0) {
-                    if(g[b] != 0) S.push_back(b);
+                    if(g[b].size() != 0) S.push_back(b);
                     --p;
                 }
             }
