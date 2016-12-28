@@ -25,7 +25,8 @@ class Edge;
 typedef std::vector<Overlap> Overlaps;
 typedef std::map<read_id_t, Read> Reads;
 typedef std::map<read_id_t, ReadTrim> ReadTrims;
-typedef std::map<std::pair<read_id_t,bool>, std::vector<Edge>> Graph;
+typedef std::pair<read_id_t,bool> Vertex;
+typedef std::map<Vertex, std::vector<Edge>> Graph;
 
 
 enum OverlapClassification{

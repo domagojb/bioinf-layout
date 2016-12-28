@@ -14,5 +14,6 @@ Params getDefaultParams() {
     params.maximalOverhangLength = 1000; //bp
     params.mappingLengthRatio = 0.8;
     params.minimalOverlap = 2000; //bp
+    params.maximalTipExtension = 4; // reads
     return params;
 }
