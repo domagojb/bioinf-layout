@@ -9,12 +9,13 @@ typedef struct {
 
     read_size_t minAllowedMatchSpan; // bp
     read_size_t minAllowedNumberOfSequenceMatches; // bp
-    read_size_t minimalReadCoverage; //bp
+    read_size_t minimalReadCoverage; // bp
     float minimalIdentityFactor;
 
-    read_size_t maximalOverhangLength; //bp
+    read_size_t maximalOverhangLength; // bp
     float mappingLengthRatio;
-    read_size_t minimalOverlap; //bp
+    read_size_t minimalOverlap; // bp
+    size_t maximalTipExtension; // reads
 
 } Params;
 

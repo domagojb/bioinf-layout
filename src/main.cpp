@@ -7,6 +7,7 @@
 #include "GraphUtils.h"
 
 
+
 int main() {
 
     Overlaps overlaps;
@@ -33,14 +34,14 @@ int main() {
     std::cout << "5) Trimming reads" << std::endl;
     trimReads(overlaps, readTrims2, params);
 
-    mergeTrims(readTrims,readTrims2);
+    mergeTrims(readTrims, readTrims2);
 
 
     std::cout << "6) Chimering reads" << std::endl;
-    filterChimeric(overlaps,readTrims,params);
+    filterChimeric(overlaps, readTrims, params);
 
     std::cout << "7) Filtering contained reads" << std::endl;
-    filterContained(overlaps,readTrims,params);
+    filterContained(overlaps, readTrims, params);
 
 //
 //    for (auto &pair : readTrims) {
@@ -54,17 +55,22 @@ int main() {
     std::cout << "8) Generating graph" << std::endl;
     Graph g;
     generateGraph(g, overlaps, readTrims, params);
-    
-    logGraph(g);
+
+//    logGraph(g);
 
     filterTransitiveEdges(g, 1000);
 
-    logGraph(g);
+//    logGraph(g);
 
     removeAsymetricEdges(g);
 
-    logGraph(g);
+//    cleanGraph(g);
 
+//    logGraph(g);
+
+    cutTips(g, readTrims, params);
+
+//    logGraph(g);
 
 //    std::cout << "Left with " << overlaps.size() << " trimmed overlaps" << std::endl;
 

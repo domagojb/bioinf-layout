@@ -6,9 +6,71 @@
 
 #include "GraphUtils.h"
 
+
+static void isUnitigEnd(GraphEdgeType &graphEdgeType, Vertex &vertexOut, const Graph &graph, const Vertex &vertexIn) {
+
+    const std::vector<Edge> &edges(graph.at(std::make_pair(vertexIn.first, !vertexIn.second)));
+
+    size_t undeletedSize(0);
+    size_t i(0);
+    size_t undeletedEdgeIdx(0);
+    for (const auto &edge : edges) {
+        if (!edge.del) {
+            ++undeletedSize;
+            undeletedEdgeIdx = i;
+        }
+        ++i;
+    }
+
+
+    if (undeletedSize == 0) {
+        graphEdgeType = GraphEdgeType::GRAPH_EDGE_TYPE_TIP;
+        return;
+    }
+
+    if (undeletedSize > 1) {
+        graphEdgeType = GraphEdgeType::GRAPH_EDGE_TYPE_MULTI_OUT;
+        return;
+    }
+
+    vertexOut = std::make_pair(edges[undeletedEdgeIdx].bId, edges[undeletedEdgeIdx].bIsReversed);
+
+    Vertex vertexOutNeg = std::make_pair(vertexOut.first, !vertexOut.second);
+
+    undeletedSize = 0;
+    for (const auto &edge : graph.at(vertexOutNeg)) {
+        if (!edge.del) {
+            ++undeletedSize;
+        }
+    }
+
+    graphEdgeType = undeletedSize != 1 ? GRAPH_EDGE_TYPE_MULTI_NEI : GRAPH_EDGE_TYPE_MERGEABLE;
+
+}
+
+static void extend(std::vector<read_id_t> &readIds, GraphEdgeType &graphEdgeType, const Graph &g, const Vertex &v,
+            const Params &params) {
+    size_t tipExtension(params.maximalTipExtension);
+
+    Vertex vertex = v;
+
+    readIds.push_back(vertex.first);
+    while (true) {
+        isUnitigEnd(graphEdgeType, vertex, g, std::make_pair(vertex.first, !vertex.second));
+//        printf("%d\n",graphEdgeType);
+        if (graphEdgeType != GraphEdgeType::GRAPH_EDGE_TYPE_MERGEABLE) break;
+
+        readIds.push_back(vertex.first);
+        if (--tipExtension == 0) break;
+    }
+}
+
+
 void generateGraph(Graph &g, const Overlaps &overlaps, const ReadTrims &readTrims, Params &params) {
 
     int edgeCnt = 0;
+
+
     for (const auto &o : overlaps) {
         OverlapClassification c;
         Edge e;
@@ -81,14 +143,7 @@ void filterTransitiveEdges(Graph &g, read_size_t FUZZ) {
         }
     }
 
-    for (auto& p : g) {
-        std::vector<Edge> newEdges;
-        for (auto& e : p.second) {
-            if (!e.del) newEdges.push_back(e);
-        }
-        p.second.swap(newEdges);
-        newEdges.clear();
-    }
+    cleanGraph(g);
 
     std::cout << "Reduced " << reduceCnt << " edges" << std::endl;
 
@@ -112,7 +167,8 @@ void logGraph(const Graph &g) {
 
 void removeAsymetricEdges(Graph &g) {
 
-    int cnt = 0;
+    size_t cnt(0);
+
     for (auto& p : g) {
         for (auto& e : p.second) {
             bool found = false;
@@ -122,9 +178,76 @@ void removeAsymetricEdges(Graph &g) {
                     break;
                 }
             }
-            if (!found) e.del = true, cnt++;
+            if (!found) {
+                e.del = true;
+                ++cnt;
+            }
         }
     }
 
+    cleanGraph(g);
+
     std::cout << "Removing " << cnt << " asymetric edges" << std::endl;
 }
+
+void cleanGraph(Graph &g) {
+    for (auto & p : g) {
+        std::vector<Edge> newEdges;
+        for (auto& e : p.second) {
+            if (!e.del) newEdges.push_back(e);
+        }
+        p.second.swap(newEdges);
+        newEdges.clear();
+    }
+}
+
+void cutTips(Graph &g, ReadTrims &readTrims, const Params &params) {
+
+    size_t cnt(0);
+
+//    auto p(std::make_pair(std::make_pair(198,false),g[std::make_pair(198,false)]));
+    for (auto &p : g) {
+//        std::cout<<p.first.first<<" !"[p.first.second]<<std::endl;
+        Vertex vertexOut;
+        GraphEdgeType graphEdgeType;
+        isUnitigEnd(graphEdgeType, vertexOut, g, p.first);
+        if(readTrims[p.first.first].del) continue;
+//    printf("Not deleted\n");
+
+        if (graphEdgeType != GRAPH_EDGE_TYPE_TIP) continue; // not a tip
+//        printf("Is tip\n");
+
+        std::vector<read_id_t> readIds;
+
+        extend(readIds, graphEdgeType, g, p.first, params);
+
+        if (graphEdgeType == GRAPH_EDGE_TYPE_MERGEABLE) continue;
+//        printf("Not unitig\n");
+
+//        if (readIds.size() == 0) continue;
+        ++cnt;
+
+        for (read_id_t readId: readIds) {
+            readTrims[readId].del = true;
+
+            // delete all outgoing edges from u and u' and all reverse edges (if u->v is deleted delete v'->u')
+
+            for (int i = 0; i < 2; ++i) {
+                for (auto &edge: g[std::make_pair(readId, static_cast<bool>(i))]) {
+                    edge.del = true;
+
+                    for (auto &edge2: g[std::make_pair(edge.bId, !edge.bIsReversed)]) {
+                        if(edge2.bId == readId && edge2.bIsReversed != edge.aIsReversed){
+                            edge2.del = true;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    cleanGraph(g);
+
+    std::cout << "Cutting " << cnt << " tips" << std::endl;
+}
+
