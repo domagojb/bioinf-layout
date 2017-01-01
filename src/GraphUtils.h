@@ -26,3 +26,5 @@ enum GraphEdgeType {
 
 
 void cutTips(Graph &g, ReadTrims &readTrims, const Params &params);
+
+void popBubbles(Graph& g , ReadTrims &readTrims);

@@ -70,6 +70,8 @@ int main() {
 
     cutTips(g, readTrims, params);
 
+    popBubbles(g, readTrims);
+
 //    logGraph(g);
 
 //    std::cout << "Left with " << overlaps.size() << " trimmed overlaps" << std::endl;
