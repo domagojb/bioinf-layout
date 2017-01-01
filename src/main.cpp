@@ -66,11 +66,16 @@ int main() {
 
 //    cleanGraph(g);
 
-    writeGraphToSIF("../test-data/graph.sif", g);
 
     cutTips(g, readTrims, params);
 
+    writeGraphToSIF("../test-data/notips.sif", g);
+
+
     popBubbles(g, readTrims);
+
+    writeGraphToSIF("../test-data/nobubles.sif", g);
+
 
 //    logGraph(g);
 

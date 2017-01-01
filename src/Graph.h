@@ -13,5 +13,5 @@ public:
     bool del;
     read_size_t numberOfSequenceMatches;
     float numberOfSequenceMatchesRatio;
-    bool visited;
+    bool visited = false;
 };

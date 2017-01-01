@@ -278,7 +278,7 @@ void popBubbles(Graph& g , ReadTrims &readTrims) {
         if (p.second.size() < 2 || readTrims[p.first.first].del) continue;
         int nonDeleted = 0;
 
-        distances.clear();
+//        distances.clear();
         unvisitedIncoming.clear();
         S.clear();
         visitedV.clear();
@@ -318,6 +318,8 @@ void popBubbles(Graph& g , ReadTrims &readTrims) {
 
                 if(distances[read] + edge.overlapLength < distances[b]) {
                     distances[b] = distances[read] + edge.overlapLength;
+                    optPath[b] = read;
+
                 }
 
                 --unvisitedIncoming[b];
@@ -331,13 +333,22 @@ void popBubbles(Graph& g , ReadTrims &readTrims) {
                 std::cout << "Found bubble " << read0.first << " !"[read0.second] << " -> " <<  S.back().first << " !"[S.back().second] << std::endl;
 
                 // delete visited vertex and edges
-                for (auto& vv : visitedV) readTrims[vv.first].del = true;
+                for (auto& vv : visitedV) {
+//                    std::cout << "Visiting " << vv.first <<  " !"[vv.second] << std::endl;
+                    readTrims[vv.first].del = true;
+                }
                 for (auto& p2 : g) {
                     for (auto &edge: p2.second) {
-                        if (edge.visited) edge.del = 1;
-                        for (auto &edge2: g[std::make_pair(edge.bId, !edge.bIsReversed)]) {
-                            if (edge2.bId == edge.aId && edge2.bIsReversed != edge.aIsReversed) {
-                                edge2.del = true;
+                        if (edge.visited) {
+
+//                            std::cout << "Deleting : " << std::endl << edge.aId <<  " !"[edge.aIsReversed] << " -> " << edge.bId <<  " !"[edge.bIsReversed] << std::endl;
+
+                            edge.del = true;
+                            for (auto &edge2: g[std::make_pair(edge.bId, !edge.bIsReversed)]) {
+                                if (edge2.bId == edge.aId && edge2.bIsReversed != edge.aIsReversed) {
+//                                    std::cout <<  edge2.aId <<  " !"[edge2.aIsReversed] << " -> " << edge2.bId <<  " !"[edge2.bIsReversed] << std::endl;
+                                    edge2.del = true;
+                                }
                             }
                         }
                     }
@@ -345,20 +356,22 @@ void popBubbles(Graph& g , ReadTrims &readTrims) {
 
 
                 Vertex& v = S.back();
-                do {
+//                std::cout << "Visiting " << v.first <<  " !"[v.second] << std::endl;
+                while (v != read0) {
                     Vertex& u = optPath[v]; // u -> v
+//                    std::cout << "Visiting " << u.first <<  " !"[u.second] << std::endl;
                     readTrims[v.first].del = false;
 
                     for (auto& edge: g[u]) if (edge.bId == v.first && edge.bIsReversed == v.second) edge.del = false;
                     for (auto& edge: g[std::make_pair(v.first, !v.second)]) if (edge.bId == u.first && edge.bIsReversed == !u.second) edge.del = false;
                     v = u;
-                } while (v != read0);
+                }
 
                 break;
             }
         }
 
-
+        for (auto& p2 : g) for (auto& e : p2.second) e.visited = false;
 
     }
 
