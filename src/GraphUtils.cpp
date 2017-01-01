@@ -367,6 +367,9 @@ void popBubbles(Graph& g , ReadTrims &readTrims) {
                     v = u;
                 }
 
+
+                cleanGraph(g);
+
                 break;
             }
         }
@@ -375,7 +378,6 @@ void popBubbles(Graph& g , ReadTrims &readTrims) {
 
     }
 
-    cleanGraph(g);
 
     #undef D
 }
