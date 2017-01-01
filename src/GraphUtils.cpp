@@ -305,9 +305,9 @@ void popBubbles(Graph& g , ReadTrims &readTrims) {
 
                 Vertex b = std::make_pair(edge.bId, edge.bIsReversed);
 
-                if (distances[read] + edge.overlapLength > D) break;
+                if(distances[read] + edge.overlapLength > D) break;
 
-                if (distances[b] == INT_MAX) { // not visited
+                if(distances[b] == INT_MAX) { // not visited
                     unvisitedIncoming[b] = countIncoming(g, b);
                     ++pv;
                     visitedV.push_back(b);
@@ -316,13 +316,14 @@ void popBubbles(Graph& g , ReadTrims &readTrims) {
 
                 }
 
-                if (distances[read] + edge.overlapLength < distances[b]) {
+                if(distances[read] + edge.overlapLength < distances[b]) {
                     distances[b] = distances[read] + edge.overlapLength;
                     optPath[b] = read;
+
                 }
 
                 --unvisitedIncoming[b];
-                if (unvisitedIncoming[b] == 0) {
+                if(unvisitedIncoming[b] == 0) {
                     if(g[b].size() != 0) S.push_back(b);
                     --pv;
                 }
@@ -366,16 +367,15 @@ void popBubbles(Graph& g , ReadTrims &readTrims) {
                     v = u;
                 }
 
-                cleanGraph(g);
-
                 break;
             }
         }
 
-//        for (auto& p2 : g) for (auto& e : p2.second) e.visited = false;
+        for (auto& p2 : g) for (auto& e : p2.second) e.visited = false;
 
     }
 
+    cleanGraph(g);
 
     #undef D
 }
