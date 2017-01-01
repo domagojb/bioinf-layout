@@ -66,7 +66,7 @@ int main() {
 
 //    cleanGraph(g);
 
-//    logGraph(g);
+    writeGraphToSIF("../test-data/graph.sif", g);
 
     cutTips(g, readTrims, params);
 

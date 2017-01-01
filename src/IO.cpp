@@ -230,3 +230,18 @@ void logTrimmedOverlaps(const Overlaps &overlaps, const ReadTrims &readTrims) {
         logTrimmedOverlap(overlap,readTrims);
     }
 }
+
+void writeGraphToSIF(const std::string &path, const Graph &graph) {
+    std::ofstream os;
+    os.open(path);
+
+    for (const auto& p : graph) {
+        for (const auto& e : p.second) {
+            os << e.aId << "ab"[e.aIsReversed] << " s " << e.bId << "ab"[e.bIsReversed] << std::endl;
+        }
+//        os << overlap->getAId() << " " << edgeType << " " << overlap->getBId() << std::endl;
+    }
+
+    os.flush();
+    os.close();
+}

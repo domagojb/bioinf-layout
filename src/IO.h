@@ -32,6 +32,8 @@ int readFASTAReads(const std::string &path, std::vector<Read *> &reads);
 
 void writeOverlapsToSIF(const std::string &path, const Overlaps &overlaps);
 
+void writeGraphToSIF(const std::string &path, const Graph &graph);
+
 
 /**
  * Reads overlaps from the given PAF file.
