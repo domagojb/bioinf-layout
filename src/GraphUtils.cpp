@@ -3,15 +3,9 @@
 //
 
 #include "OverlapUtils.h"
-#include <vector>
-#include <algorithm>
 #include <map>
 #include "GraphUtils.h"
-#include <limits.h>
-
-static void popBubble(Graph &g, Vertex &v) {
-
-}
+#include <iostream>
 
 static void isUnitigEnd(GraphEdgeType &graphEdgeType, Vertex &vertexOut, const Graph &graph, const Vertex &vertexIn) {
 

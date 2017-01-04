@@ -6,7 +6,21 @@
 
 #include <string>
 #include <sstream>
+#include <vector>
 #include "common.h"
+
+
+
+enum OverlapClassification {
+    OVERLAP_INTERNAL_MATCH,
+    OVERLAP_SHORT,
+    OVERLAP_A_CONTAINED,
+    OVERLAP_B_CONTAINED,
+    OVERLAP_A_TO_B,
+    OVERLAP_B_TO_A,
+};
+
+
 
 class Overlap {
 public:
@@ -83,3 +97,6 @@ private:
     read_size_t numberOfSequenceMatches_;
     read_size_t alignmentBlockLength_;
 };
+
+typedef std::vector<Overlap>                                      Overlaps;
+

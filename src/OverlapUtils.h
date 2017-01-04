@@ -6,6 +6,10 @@
 
 
 #include "common.h"
+#include "ReadTrim.h"
+#include "Overlap.h"
+#include "Graph.h"
+#include "params.h"
 
 void proposeReadTrims(
         ReadTrims &readTrims,

@@ -4,6 +4,7 @@
 
 #include <cmath>
 #include <algorithm>
+#include <iostream>
 #include "OverlapUtils.h"
 #include "IO.h"
 #include "params.h"

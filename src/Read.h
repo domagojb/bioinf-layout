@@ -6,6 +6,7 @@
 
 #include "common.h"
 #include <string>
+#include <unordered_map>
 
 class Read {
 public:
@@ -18,3 +19,6 @@ private:
     const read_id_t id_;
     const read_size_t length_;
 };
+
+
+typedef std::unordered_map<read_id_t, Read>                       Reads;

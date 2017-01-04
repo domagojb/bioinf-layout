@@ -4,6 +4,10 @@
 
 #pragma once
 
+#include <sstream>
+#include <unordered_map>
+#include "common.h"
+
 class ReadTrim {
 public:
     ReadTrim(read_size_t begin, read_size_t end, bool del) : start(begin), end(end), del(del) {}
@@ -22,3 +26,4 @@ public:
     read_size_t end;
     bool del;
 };
+typedef std::unordered_map<read_id_t, ReadTrim>                   ReadTrims;

@@ -4,6 +4,7 @@
 #pragma once
 
 #include "common.h"
+#include <cstddef>
 
 typedef struct {
 
@@ -15,7 +16,7 @@ typedef struct {
     read_size_t maximalOverhangLength; // bp
     float mappingLengthRatio;
     read_size_t minimalOverlap; // bp
-    size_t maximalTipExtension; // reads
+    std::size_t maximalTipExtension; // reads
 
 } Params;
 

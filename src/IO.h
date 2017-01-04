@@ -7,10 +7,10 @@
 #include <vector>
 #include "common.h"
 #include "params.h"
-
-class Overlap;
-
-class Read;
+#include "Overlap.h"
+#include "Graph.h"
+#include "Read.h"
+#include "ReadTrim.h"
 
 /**
  * Reads overlaps from the given MHAP file.
