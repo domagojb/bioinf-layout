@@ -6,18 +6,19 @@
 #include <unordered_map>
 #include <map>
 #include "common.h"
+
 class Edge {
 
 public:
     read_size_t aId;
     read_size_t bId;
-    bool aIsReversed;
-    bool bIsReversed;
+    bool  aIsReversed;
+    bool  bIsReversed;
     read_size_t overlapLength;
-    bool del;
+    bool  del;
     read_size_t numberOfSequenceMatches;
     float numberOfSequenceMatchesRatio;
-    bool visited = false;
+    bool  visited = false;
 };
 
 
@@ -32,10 +33,13 @@ public:
 
 typedef std::map<Vertex, std::vector<Edge>> Graph;
 
-Vertex invertVertex(const Vertex vertex);
-Vertex bVertex(const Edge edge);
+Vertex invertVertex( const Vertex vertex );
 
-size_t edgesCount(const Graph &g, const Vertex & vertex);
-bool hasSingleEdge(const Graph &g, const Vertex & vertex);
-const Edge & firstEdge(const Graph &g, const Vertex & vertex);
+Vertex bVertex( const Edge edge );
+
+size_t edgesCount( const Graph & g, const Vertex & vertex );
+
+bool hasSingleEdge( const Graph & g, const Vertex & vertex );
+
+const Edge & firstEdge( const Graph & g, const Vertex & vertex );
 

@@ -19,7 +19,7 @@
  * @param overlaps list of overlaps extracted from the file
  * @return number of overlaps extracted
  */
-int readMHAPOverlaps(const std::string &path, std::vector<Overlap *> &overlaps, const std::vector<Read *> &reads);
+int readMHAPOverlaps( const std::string & path, std::vector<Overlap *> & overlaps, const std::vector<Read *> & reads );
 
 /**
  * Reads reads from the given FASTA file.
@@ -28,11 +28,11 @@ int readMHAPOverlaps(const std::string &path, std::vector<Overlap *> &overlaps, 
  * @param reads list of reads extracted from the file
  * @return number of reads extracted
  */
-int readFASTAReads(const std::string &path, std::vector<Read *> &reads);
+int readFASTAReads( const std::string & path, std::vector<Read *> & reads );
 
-void writeOverlapsToSIF(const std::string &path, const Overlaps &overlaps);
+void writeOverlapsToSIF( const std::string & path, const Overlaps & overlaps );
 
-void writeGraphToSIF(const std::string &path, const Graph &graph);
+void writeGraphToSIF( const std::string & path, const Graph & graph );
 
 
 /**
@@ -41,12 +41,12 @@ void writeGraphToSIF(const std::string &path, const Graph &graph);
  * @param path path to PAF file
  * @param overlaps list of overlaps extracted from the file
  */
-void loadPAF(Overlaps &overlaps, Reads &reads, const std::string &path, const Params &params);
+void loadPAF( Overlaps & overlaps, Reads & reads, const std::string & path, const Params & params );
 
 
-void logOverlaps(const Overlaps& overlaps);
+void logOverlaps( const Overlaps & overlaps );
 
 
-void logTrimmedOverlap(const Overlap &overlap, const ReadTrims &readTrims);
+void logTrimmedOverlap( const Overlap & overlap, const ReadTrims & readTrims );
 
-void logTrimmedOverlaps(const Overlaps &overlaps, const ReadTrims &readTrims);
+void logTrimmedOverlaps( const Overlaps & overlaps, const ReadTrims & readTrims );
