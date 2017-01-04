@@ -228,8 +228,8 @@ void cutTips( Graph & g, ReadTrims & readTrims, const Params & params ) {
     //    auto p(std::make_pair(std::make_pair(198,false),g[std::make_pair(198,false)]));
     for ( auto & p : g ) {
         //        std::cout<<p.first.first<<" !"[p.first.second]<<std::endl;
-        Vertex vertexOut;
-        GraphEdgeType   graphEdgeType;
+        Vertex        vertexOut;
+        GraphEdgeType graphEdgeType;
         isUnitigEnd( graphEdgeType, vertexOut, g, p.first );
         if ( readTrims[p.first.first].del ) continue;
         //    printf("Not deleted\n");
@@ -272,7 +272,7 @@ void cutTips( Graph & g, ReadTrims & readTrims, const Params & params ) {
 }
 
 int countIncoming( Graph & g, Vertex & v ) {
-    int              cnt = 0;
+    int cnt = 0;
     for ( const auto & e : g[std::make_pair( v.first, !v.second )] ) { if ( !e.del ) cnt++; }
     return cnt;
 }
@@ -281,9 +281,9 @@ void popBubbles( Graph & g, ReadTrims & readTrims ) {
 
 #define D 50000
 
-    std::vector<Vertex> S;
-    std::map<Vertex, int>    distances;
-    std::map<Vertex, int>    unvisitedIncoming;
+    std::vector<Vertex>   S;
+    std::map<Vertex, int> distances;
+    std::map<Vertex, int> unvisitedIncoming;
 
     std::vector<Vertex> visitedV;
     std::map<Vertex, Vertex> optPath;

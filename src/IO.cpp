@@ -140,8 +140,7 @@ void loadPAF( Overlaps & overlaps, Reads & reads, const std::string & path, cons
             >> bStart
             >> bEnd
             >> numberOfSequenceMatches
-            >> alignmentBlockLength
-            >> placeholder1 >> placeholder2 ) {
+            >> alignmentBlockLength >> placeholder1 >> placeholder2 ) {
 
         read_size_t aMatchSpan( aEnd - aStart );
         read_size_t bMatchSpan( bEnd - bStart );
@@ -244,7 +243,7 @@ void logTrimmedOverlaps( const Overlaps & overlaps, const ReadTrims & readTrims 
 }
 
 void writeGraphToSIF( const std::string & path, const Graph & graph ) {
-    std::ofstream    os;
+    std::ofstream os;
     os.open( path );
 
     for ( const auto & p : graph ) {

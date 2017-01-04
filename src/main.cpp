@@ -83,12 +83,12 @@ void generateUnitigs( Unitigs & unitigs, Graph const & g, ReadTrims const & read
         read_size_t len( 0 );
 
         while ( true ) {
-            if ( !hasSingleEdge(g, vertexCurrent ) ) break;
+            if ( !hasSingleEdge( g, vertexCurrent )) break;
 
-            Vertex vertexNext( bVertex(firstEdge(g,vertexCurrent)));
+            Vertex vertexNext( bVertex( firstEdge( g, vertexCurrent )));
 
 
-            if ( !hasSingleEdge( g, invertVertex( vertexNext )) ) break;
+            if ( !hasSingleEdge( g, invertVertex( vertexNext ))) break;
 
             hasVisited.insert( vertexNext );
             hasVisited.insert( invertVertex( vertexCurrent ));
@@ -117,11 +117,11 @@ void generateUnitigs( Unitigs & unitigs, Graph const & g, ReadTrims const & read
             Vertex vertexNext = vertex;
 
             while ( true ) {
-                if ( !hasSingleEdge( g, invertVertex( vertexNext )) ) break;
+                if ( !hasSingleEdge( g, invertVertex( vertexNext ))) break;
 
                 vertexCurrent = invertVertex( bVertex( firstEdge( g, invertVertex( vertexNext ))));
 
-                if ( !hasSingleEdge(g, vertexCurrent ) ) break;
+                if ( !hasSingleEdge( g, vertexCurrent )) break;
 
                 hasVisited.insert( vertexNext );
                 hasVisited.insert( invertVertex( vertexCurrent ));
@@ -138,7 +138,7 @@ void generateUnitigs( Unitigs & unitigs, Graph const & g, ReadTrims const & read
             hasVisited.insert( vertexEnd );
         }
 
-        unitigs.emplace_back(vertexStart, vertexEnd, len, !isLinearUnitig, unitigReads);
+        unitigs.emplace_back( vertexStart, vertexEnd, len, !isLinearUnitig, unitigReads );
 
     }
 
@@ -188,7 +188,7 @@ int main() {
     //exit(0);
 
 
-//    logTrimmedOverlaps( overlaps, readTrims );
+    //    logTrimmedOverlaps( overlaps, readTrims );
 
     std::cout << "8) Generating graph" << std::endl;
     Graph g;
@@ -215,7 +215,7 @@ int main() {
     writeGraphToSIF( "../test-data/nobubles.sif", g );
 
 
-//    logGraph(g);
+    //    logGraph(g);
 
     Unitigs unitigs;
     generateUnitigs( unitigs, g, readTrims );

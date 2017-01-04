@@ -6,8 +6,8 @@
 #include <deque>
 #include "Graph.h"
 
-typedef std::pair<Vertex, read_size_t>                            UnitigRead;
-typedef std::deque<UnitigRead>                                    UnitigReads;
+typedef std::pair<Vertex, read_size_t> UnitigRead;
+typedef std::deque<UnitigRead>         UnitigReads;
 
 class Unitig {
 public:
