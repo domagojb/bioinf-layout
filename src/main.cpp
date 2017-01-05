@@ -1,7 +1,6 @@
 #include <iostream>
 #include "common.h"
 #include "Overlap.h"
-#include "Read.h"
 #include "params.h"
 #include "ReadTrim.h"
 #include "Graph.h"
@@ -15,11 +14,10 @@
 int main() {
 
     Overlaps overlaps;
-    Reads    reads;
     Params   params( getDefaultParams());
 
     std::cout << "1) Reading overlaps and reads" << std::endl;
-    loadPAF( overlaps, reads, "../test-data/lambda_overlaps.paf", params );
+    loadPAF( overlaps, "../test-data/lambda_overlaps.paf", params );
 
     std::cout << "2) Proposing read trims" << std::endl;
     ReadTrims readTrims;
