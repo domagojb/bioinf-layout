@@ -1,51 +1,11 @@
 //
 // Created by Ivan Jurin on 1/4/17.
 //
+#include <fstream>
+#include <assert.h>
+#include <unordered_set>
+#include <iostream>
 #include "UnitigUtils.h"
-
-void logUnitigs( const Unitigs & unitigs, const ReadTrims & readTrims ) {
-    auto   fp = stdout;
-    size_t i( 0 );
-    char   name[32];
-    for ( Unitig const & unitig : unitigs ) {
-        sprintf( name, "utg%.6ld%c", i++ + 1, "lc"[unitig.isCircular] );
-        fprintf( fp,
-                 "S\t%s\t%s\tLN:i:%d\n",
-                 name,
-                 !unitig.sequence.empty() ? unitig.sequence.c_str() : "*",
-                 unitig.length
-               );
-
-
-        read_size_t cumLength( 0 );
-        for ( UnitigRead const & unitigRead : unitig.reads ) {
-            auto const & vertex( unitigRead.first );
-            read_size_t length( unitigRead.second );
-
-            auto readId( vertex.first );
-            auto isReversed( vertex.second );
-
-            auto const & readTrim( readTrims.at( readId ));
-
-            fprintf( fp,
-                     "a\t%s\t%d\t%d:%d-%d\t%c\t%d\n",
-                     name,
-                     cumLength,
-                     readId,
-                     readTrim.start + 1,
-                     readTrim.end,
-                     "+-"[isReversed],
-                     length
-                   );
-
-
-            cumLength += length;
-        }
-
-    }
-    // todo: print joined unitigs
-    // todo: print unitig summaries
-}
 
 void generateUnitigs( Unitigs & unitigs, Graph const & g, ReadTrims const & readTrims ) {
     //#define printv(name, v) name<<" "<<(v).first<<" !"[(v).second]
@@ -135,5 +95,97 @@ void generateUnitigs( Unitigs & unitigs, Graph const & g, ReadTrims const & read
 
     }
 
+    std::cout << "Generated " << unitigs.size() << " unitig" << " s"[unitigs.size() > 1] << std::endl;
     // todo: joining unitigs
+}
+
+
+// borrowed from original miniasm implementation
+static char comp_tab[] = { // complement base
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
+        30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57,
+        58, 59, 60, 61, 62, 63, 64, 'T', 'V', 'G', 'H', 'E', 'F', 'C', 'D', 'I', 'J', 'M', 'L', 'K', 'N', 'O', 'P', 'Q',
+        'Y', 'S', 'A', 'A', 'B', 'W', 'X', 'R', 'Z', 91, 92, 93, 94, 95, 64, 't', 'v', 'g', 'h', 'e', 'f', 'c', 'd',
+        'i', 'j', 'm', 'l', 'k', 'n', 'o', 'p', 'q', 'y', 's', 'a', 'a', 'b', 'w', 'x', 'r', 'z', 123, 124, 125, 126,
+        127 };
+
+void assignSequencesToUnitigs( Unitigs & unitigs, const ReadTrims & readTrims, const std::string pathToFASTA ) {
+
+    std::unordered_map<read_id_t, std::string> sequences;
+
+    std::ifstream is;
+    is.open( pathToFASTA );
+    auto        expectSequence( false );
+    read_id_t   expectedReadId( 0 );
+    std::string line;
+    while ( std::getline( is, line )) {
+        if ( expectSequence ) {
+            auto it( readTrims.find( expectedReadId ));
+            if ( it != readTrims.end()) {
+                auto const & readTrim( it->second );
+                sequences.emplace( expectedReadId, line.substr((size_t) readTrim.start, (size_t) readTrim.length()));
+            }
+            expectSequence = false;
+        } else if ( !line.empty() && line[0] == '>' ) {
+            std::istringstream iss( line.substr( 1 ));
+            if ( !( iss >> expectedReadId )) assert( false );
+            expectSequence = true;
+        }
+    }
+
+    for ( auto && unitig : unitigs ) {
+        for ( UnitigRead const & unitigRead : unitig.reads ) {
+            std::string sequence( sequences[unitigRead.first.first] );
+            if ( unitigRead.first.second ) {
+                std::reverse( sequence.begin(), sequence.end());
+                for ( auto && c: sequence ) { c = comp_tab[c]; }
+            }
+            unitig.sequence += sequence.substr( 0, (size_t) unitigRead.second );
+        }
+    }
+}
+
+
+void logUnitigs( const Unitigs & unitigs, const ReadTrims & readTrims ) {
+    auto   fp = stdout;
+    size_t i( 0 );
+    char   name[32];
+    for ( Unitig const & unitig : unitigs ) {
+        sprintf( name, "utg%.6ld%c", i++ + 1, "lc"[unitig.isCircular] );
+        fprintf( fp,
+                 "S\t%s\t%s\tLN:i:%d\n",
+                 name,
+                 !unitig.sequence.empty() ? unitig.sequence.c_str() : "*",
+                 unitig.length
+               );
+
+
+        read_size_t cumLength( 0 );
+        for ( UnitigRead const & unitigRead : unitig.reads ) {
+            auto const & vertex( unitigRead.first );
+            read_size_t length( unitigRead.second );
+
+            auto readId( vertex.first );
+            auto isReversed( vertex.second );
+
+            auto const & readTrim( readTrims.at( readId ));
+
+            fprintf( fp,
+                     "a\t%s\t%d\t%d:%d-%d\t%c\t%d\n",
+                     name,
+                     cumLength,
+                     readId,
+                     readTrim.start + 1,
+                     readTrim.end,
+                     "+-"[isReversed],
+                     length
+                   );
+
+
+            cumLength += length;
+        }
+
+    }
+    // todo: print joined unitigs
+    // todo: print unitig summaries
 }

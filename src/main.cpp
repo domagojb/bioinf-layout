@@ -11,6 +11,7 @@
 #include "Unitig.h"
 #include "UnitigUtils.h"
 
+
 int main() {
 
     Overlaps overlaps;
@@ -39,19 +40,11 @@ int main() {
 
     mergeTrims( readTrims, readTrims2 );
 
-
     std::cout << "6) Chimering reads" << std::endl;
     filterChimeric( overlaps, readTrims, params );
 
     std::cout << "7) Filtering contained reads" << std::endl;
     filterContained( overlaps, readTrims, params );
-
-    //
-    //    for (auto &pair : readTrims) {
-    //        std::cout<<pair.first+100000<<" "<<pair.second.toString()<<std::endl;
-    //    }
-    //exit(0);
-
 
     //    logTrimmedOverlaps( overlaps, readTrims );
 
@@ -61,29 +54,31 @@ int main() {
 
     //    logGraph(g);
 
+    std::cout << "9) Filtering transitive edges" << std::endl;
     filterTransitiveEdges( g, 1000 );
 
     //    logGraph(g);
 
+    std::cout << "10) Removing asymetric edges" << std::endl;
     removeAsymetricEdges( g );
 
-    //    cleanGraph(g);
-
-
+    std::cout << "11) Cutting tips" << std::endl;
     cutTips( g, readTrims, params );
 
     writeGraphToSIF( "../test-data/notips.sif", g );
 
-
+    std::cout << "12) Popping bubbles" << std::endl;
     popBubbles( g, readTrims );
 
     writeGraphToSIF( "../test-data/nobubles.sif", g );
 
-
     //    logGraph(g);
 
     Unitigs unitigs;
+    std::cout << "13) Generating unitigs" << std::endl;
     generateUnitigs( unitigs, g, readTrims );
+
+    assignSequencesToUnitigs( unitigs, readTrims, "../test-data/lambda_reads.fasta" );
 
     logUnitigs( unitigs, readTrims );
 
