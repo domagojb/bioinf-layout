@@ -9,31 +9,9 @@
 #include "params.h"
 #include "Overlap.h"
 #include "Graph.h"
-#include "Read.h"
 #include "ReadTrim.h"
 
-/**
- * Reads overlaps from the given MHAP file.
- *
- * @param path path to MHAP file
- * @param overlaps list of overlaps extracted from the file
- * @return number of overlaps extracted
- */
-int readMHAPOverlaps( const std::string & path, std::vector<Overlap *> & overlaps, const std::vector<Read *> & reads );
-
-/**
- * Reads reads from the given FASTA file.
- *
- * @param path path to FASTA file
- * @param reads list of reads extracted from the file
- * @return number of reads extracted
- */
-int readFASTAReads( const std::string & path, std::vector<Read *> & reads );
-
-void writeOverlapsToSIF( const std::string & path, const Overlaps & overlaps );
-
 void writeGraphToSIF( const std::string & path, const Graph & graph );
-
 
 /**
  * Reads overlaps from the given PAF file.
@@ -41,7 +19,7 @@ void writeGraphToSIF( const std::string & path, const Graph & graph );
  * @param path path to PAF file
  * @param overlaps list of overlaps extracted from the file
  */
-void loadPAF( Overlaps & overlaps, Reads & reads, const std::string & path, const Params & params );
+void loadPAF( Overlaps & overlaps, const std::string & path, const Params & params );
 
 
 void logOverlaps( const Overlaps & overlaps );
