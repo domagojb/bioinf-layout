@@ -21,9 +21,7 @@ void writeGraphToSIF( const std::string & path, const Graph & graph );
  */
 void loadPAF( Overlaps & overlaps, const std::string & path, const Params & params );
 
-
 void logOverlaps( const Overlaps & overlaps );
-
 
 void logTrimmedOverlap( const Overlap & overlap, const ReadTrims & readTrims );
 
