@@ -31,6 +31,7 @@ public:
 
     read_size_t start;
     read_size_t end;
+    size_t counter;
     bool del;
 };
 
