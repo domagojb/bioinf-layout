@@ -10,6 +10,7 @@
 #include "Unitig.h"
 #include "UnitigUtils.h"
 
+#define DATASET "ecoli"
 
 int main() {
 
@@ -17,7 +18,7 @@ int main() {
     Params   params( getDefaultParams());
 
     std::cout << "1) Reading overlaps and reads" << std::endl;
-    loadPAF( overlaps, "../test-data/lambda_overlaps.paf", params );
+    loadPAF( overlaps, "../test-data/" DATASET "_overlaps.paf", params );
 
     std::cout << "2) Proposing read trims" << std::endl;
     ReadTrims readTrims;
@@ -63,12 +64,12 @@ int main() {
     std::cout << "11) Cutting tips" << std::endl;
     cutTips( g, readTrims, params );
 
-    writeGraphToSIF( "../test-data/notips.sif", g );
+    writeGraphToSIF( "../test-data/" DATASET "_notips.sif", g );
 
     std::cout << "12) Popping bubbles" << std::endl;
     popBubbles( g, readTrims );
 
-    writeGraphToSIF( "../test-data/nobubles.sif", g );
+    writeGraphToSIF( "../test-data/" DATASET "_nobubles.sif", g );
 
     //    logGraph(g);
 
@@ -76,7 +77,7 @@ int main() {
     std::cout << "13) Generating unitigs" << std::endl;
     generateUnitigs( unitigs, g, readTrims );
 
-    assignSequencesToUnitigs( unitigs, readTrims, "../test-data/lambda_reads.fasta" );
+    assignSequencesToUnitigs( unitigs, readTrims, "../test-data/" DATASET "_reads.fasta" );
 
     logUnitigs( unitigs, readTrims );
 
