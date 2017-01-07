@@ -15,7 +15,7 @@ static bool
 isChimeric( size_t start, size_t end, const Overlaps & overlaps, const ReadTrims & readTrims, const Params & params ) {
     std::vector<std::pair<int, bool>> lefties; // checks left overhang
     std::vector<std::pair<int, bool>> righties; // checks right overhand
-    for ( size_t i = start; i < end; i++ ) {
+    for ( size_t                      i = start; i < end; i++ ) {
         const Overlap & o = overlaps[i];
 
         int alen   = readTrims.at( o.aId()).length();
@@ -80,9 +80,9 @@ isChimeric( size_t start, size_t end, const Overlaps & overlaps, const ReadTrims
     //    std::cout<<righties.size()<<std::endl;
 
     max = 0;
-    ac      = 0;
-    bc      = 0;
-    for ( const auto                  & pair : righties ) {
+    ac  = 0;
+    bc  = 0;
+    for ( const auto & pair : righties ) {
         //        std::cout<<pair.first<<" "<<pair.second<<std::endl;
         if ( pair.second ) { ac++; }
         else { bc++; }
@@ -179,7 +179,7 @@ void proposeReadTrims( ReadTrims & readTrims, const Overlaps & overlaps, const P
                     if ( len > max.end - max.start ) {
                         //                        max2 = max;
                         max.start = start;
-                        max.end = pointPosition;
+                        max.end   = pointPosition;
                         //                    } else if (len > max2.end - max2.start) {
                         //                        max2.start = start;
                         //                        max2.end = pointPosition;
@@ -200,7 +200,7 @@ void proposeReadTrims( ReadTrims & readTrims, const Overlaps & overlaps, const P
 
 
 void trimReads( Overlaps & overlaps, const ReadTrims & readTrims, const Params params ) {
-    Overlaps         newOverlaps;
+    Overlaps newOverlaps;
 
     for ( const auto & overlap : overlaps ) {
         auto const aTrim( readTrims.at( overlap.aId()));
@@ -313,8 +313,8 @@ void trimReads( Overlaps & overlaps, const ReadTrims & readTrims, const Params p
 }
 
 void filterReads( Overlaps & overlaps, const ReadTrims & readTrims, const Params params ) {
-    Overlaps     newOverlaps;
-    uint64_t     tot_dp = 0, tot_len = 0;
+    Overlaps newOverlaps;
+    uint64_t tot_dp = 0, tot_len = 0;
 
     for ( const auto & overlap : overlaps ) {
         auto const & aTrim( readTrims.at( overlap.aId()));
@@ -323,7 +323,7 @@ void filterReads( Overlaps & overlaps, const ReadTrims & readTrims, const Params
         if ( aTrim.del || bTrim.del ) continue; // todo: check if necessary, I think not
 
         OverlapClassification overlapClassification;
-        Edge       edge;
+        Edge                  edge;
         classifyOverlapAndMeasureItsLength( overlapClassification,
                                             edge,
                                             overlap,
@@ -355,7 +355,7 @@ void filterReads( Overlaps & overlaps, const ReadTrims & readTrims, const Params
 
     overlaps.swap( newOverlaps );
 
-    for ( size_t i      = 1; i <= overlaps.size(); ++i ) {
+    for ( size_t i = 1; i <= overlaps.size(); ++i ) {
         read_id_t aIdCur  = overlaps[i].aId();
         read_id_t aIdLast = overlaps[i - 1].aId();
         if ( i == overlaps.size() || aIdCur != aIdLast ) {
@@ -432,7 +432,7 @@ void classifyOverlapAndMeasureItsLength( OverlapClassification & overlapClassifi
         overlapClassification = OVERLAP_SHORT;
         return;
     }
-    overlapClassification             = OVERLAP_A_TO_B; // or BTOA
+    overlapClassification = OVERLAP_A_TO_B; // or BTOA
 
     edge.aId = overlap.aId();
     edge.bId = overlap.bId();
@@ -453,9 +453,9 @@ void filterChimeric( const Overlaps & overlaps, ReadTrims & readTrims, const Par
         if ( i == overlaps.size() || overlaps[i].aId() != overlaps[start].aId()) {
             bool b = isChimeric( start, i, overlaps, readTrims, params );
             if ( b ) {
+                readTrims[overlaps[start].aId()].del = true;
                 ++chimericCnter;
             }
-            readTrims[overlaps[i].aId()].del = b;
             start = i;
         }
     }
@@ -468,7 +468,7 @@ void filterContained( Overlaps & overlaps, ReadTrims & readTrims, const Params &
 
     for ( auto & overlap : overlaps ) {
         OverlapClassification overlapClassification;
-        Edge edge;
+        Edge                  edge;
         classifyOverlapAndMeasureItsLength( overlapClassification,
                                             edge,
                                             overlap,
@@ -493,6 +493,16 @@ void filterContained( Overlaps & overlaps, ReadTrims & readTrims, const Params &
                                     }
                                   ), overlaps.end());
 
+    for ( auto & readTrim : readTrims ) {
+        readTrim.second.counter = 0;
+    }
+    for ( auto & overlap : overlaps ) {
+        ++readTrims[overlap.aId()].counter;
+        ++readTrims[overlap.bId()].counter;
+    }
+    for ( auto & readTrim : readTrims ) {
+        if(readTrim.second.counter == 0) readTrim.second.del = true;
+    }
 
     // apparently there is no better way to filter a dict, pythonic way would be dict = filter(lambda x: x.second.del,dict), but hey, dis iz cpp
     for ( auto iter( readTrims.begin()); iter != readTrims.end(); ) {
