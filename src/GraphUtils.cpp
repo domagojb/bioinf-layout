@@ -411,8 +411,8 @@ static void popBubblesInternal( int & cnt, Graph & g, const Vertex & v, ReadTrim
                 optPath[b]   = read;
                 distances[b] = distances[read] + edge.overlapLength;
             } else { // visited
-//                if ( rcnt + 1 > readCnt[b] || ( rcnt + 1 == readCnt[b] && distances[read] + edge.overlapLength > distances[b] )) {
-                if (  distances[read] + edge.overlapLength > distances[b] ) {
+                if ( rcnt + 1 > readCnt[b] || ( rcnt + 1 == readCnt[b] && distances[read] + edge.overlapLength > distances[b] )) {
+//                if (  distances[read] + edge.overlapLength > distances[b] ) {
                     optPath[b] = read;
                 }
                 if ( rcnt + 1 > readCnt[b] ) readCnt[b] = rcnt + 1;
