@@ -30,6 +30,7 @@ void generateUnitigs( Unitigs & unitigs, Graph const & g, ReadTrims const & read
 
         if ( hasVisited.find( vertex ) != hasVisited.end()) continue;
 
+        unitigReads.clear();
 
         hasVisited.insert( vertex );
 
