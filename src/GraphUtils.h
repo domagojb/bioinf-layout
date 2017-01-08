@@ -13,7 +13,7 @@ void filterTransitiveEdges( Graph & g, read_size_t FUZZ );
 
 void removeAsymetricEdges( Graph & g );
 
-void logGraph( const Graph & g );
+void logGraph( const Graph & g, const ReadTrims & readTrims );
 
 void cleanGraph( Graph & g );
 

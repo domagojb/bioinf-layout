@@ -18,6 +18,9 @@ typedef struct {
     read_size_t minimalOverlap; // bp
     std::size_t maximalTipExtension; // reads
 
+    float min_ovlp_drop_ratio, max_ovlp_drop_ratio, final_ovlp_drop_ratio;
+    int n_rounds;
+
 } Params;
 
 Params getDefaultParams();

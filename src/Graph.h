@@ -31,7 +31,8 @@ public:
     }
 };
 
-typedef std::map<Vertex, std::vector<Edge>> Graph;
+typedef std::vector<Edge> Edges;
+typedef std::map<Vertex, Edges> Graph;
 
 Vertex invertVertex( const Vertex vertex );
 

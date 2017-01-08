@@ -12,6 +12,41 @@
 
 #define DATASET "ecoli"
 
+int count(const Graph & g){
+    int cnt =0;
+    for ( const auto & pair : g ) {
+        for ( const auto & item : pair.second ) {
+            if(!item.del){
+                cnt++;
+            }
+        }
+    }
+    return cnt;
+}
+
+bool deleteShort( Graph g, ReadTrims readTrims, float r ) {
+    int n_short = 0;
+    for(auto & pair : g){
+        int max_ml = 0;
+
+        if(pair.second.size()<2) continue;
+
+        for ( auto & edge : pair.second ) {
+            max_ml = std::max(max_ml,edge.numberOfSequenceMatches);
+        }
+        if(max_ml != pair.second[0].numberOfSequenceMatches) continue;
+        int thres = pair.second[0].numberOfSequenceMatches * r + .499;
+        int i;
+        for (i = pair.second.size() - 1; i >= 1 && pair.second[i].numberOfSequenceMatches< thres; --i);
+        for (i = i + 1; i <  pair.second.size(); ++i)
+            pair.second[i].del = 1, ++n_short;
+    }
+
+    cleanGraph(g);
+    fprintf(stderr, "[M::%s] removed %d short overlaps\n", __func__, n_short);
+    return n_short!=0;
+}
+
 int main() {
 
     Overlaps overlaps;
@@ -27,59 +62,68 @@ int main() {
     std::cout << "3) Trimming reads" << std::endl;
     trimReads( overlaps, readTrims, params );
 
-    std::cout << "3) Filtering reads" << std::endl;
+    std::cout << "4) Filtering reads" << std::endl;
     filterReads( overlaps, readTrims, params );
 
-    std::cout << "4) Proposing read trims" << std::endl;
+    std::cout << "5) Proposing read trims" << std::endl;
     ReadTrims readTrims2;
     proposeReadTrims( readTrims2, overlaps, params, true );
 
-    std::cout << "5) Trimming reads" << std::endl;
+    std::cout << "6) Trimming reads" << std::endl;
     trimReads( overlaps, readTrims2, params );
 
     mergeTrims( readTrims, readTrims2 );
 
-    std::cout << "6) Chimering reads" << std::endl;
+    std::cout << "7) Chimering reads" << std::endl;
     filterChimeric( overlaps, readTrims, params );
 
-    std::cout << "7) Filtering contained reads" << std::endl;
+    std::cout << "8) Filtering contained reads" << std::endl;
     filterContained( overlaps, readTrims, params );
 
-    //    logTrimmedOverlaps( overlaps, readTrims );
-
-    std::cout << "8) Generating graph" << std::endl;
+    std::cout << "9) Generating graph" << std::endl;
     Graph g;
     generateGraph( g, overlaps, readTrims, params );
 
-    //    logGraph(g);
-
-    std::cout << "9) Filtering transitive edges" << std::endl;
+    std::cout << "10) Filtering transitive edges" << std::endl;
     filterTransitiveEdges( g, 1000 );
 
-    //    logGraph(g);
-
-    std::cout << "10) Removing asymetric edges" << std::endl;
+    std::cout << "11) Removing asymetric edges" << std::endl;
     removeAsymetricEdges( g );
 
-    std::cout << "11) Cutting tips" << std::endl;
+
+
+    std::cout << "12) Cutting tips" << std::endl;
     cutTips( g, readTrims, params );
+
+
 
     writeGraphToSIF( "../test-data/" DATASET "_notips.sif", g );
 
-    std::cout << "12) Popping bubbles" << std::endl;
+    std::cout << "13) Popping bubbles" << std::endl;
     popBubbles( g, readTrims );
 
-    writeGraphToSIF( "../test-data/" DATASET "_nobubles.sif", g );
+    for (int i = 0; i <= params.n_rounds; ++i) {
+        float r = params.min_ovlp_drop_ratio + (params.max_ovlp_drop_ratio - params.min_ovlp_drop_ratio) / params.n_rounds * i;
 
-    //    logGraph(g);
+        if(deleteShort( g, readTrims, r )) {
+            cutTips( g, readTrims, params );
+            popBubbles( g, readTrims );
+        }
+    }
+
+    writeGraphToSIF( "../test-data/" DATASET "_nobubles.sif", g );
+//
+//    logGraph(g,readTrims);
+//    exit(0);
+
 
     Unitigs unitigs;
-    std::cout << "13) Generating unitigs" << std::endl;
+    std::cout << "14) Generating unitigs" << std::endl;
     generateUnitigs( unitigs, g, readTrims );
 
-    assignSequencesToUnitigs( unitigs, readTrims, "../test-data/" DATASET "_reads.fasta" );
+//    assignSequencesToUnitigs( unitigs, readTrims, "../test-data/" DATASET "_reads.fasta" );
 
-    logUnitigs( unitigs, readTrims );
+//    logUnitigs( unitigs, readTrims );
 
 
     //    logGraph(g);
