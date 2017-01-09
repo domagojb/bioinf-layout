@@ -99,7 +99,6 @@ void generateUnitigs( Unitigs & unitigs, Graph const & g, ReadTrims const & read
     }
 
     std::cout << "Generated " << unitigs.size() << " unitig" << " s"[unitigs.size() > 1] << std::endl;
-    // todo: joining unitigs
     TIMER_END("Done with unitigs, time elapsed: ");
 }
 
@@ -150,12 +149,13 @@ void assignSequencesToUnitigs( Unitigs & unitigs, const ReadTrims & readTrims, c
 }
 
 
-void logUnitigs( const Unitigs & unitigs, const ReadTrims & readTrims ) {
+
+void logUnitigs(  const Unitigs & unitigs, const ReadTrims & readTrims ) {
     auto   fp = stdout;
     size_t i( 0 );
     char   name[32];
 
-    FILE *fasta = fopen("../test-data/ecoli_unitigs.fasta", "w");
+    std::string fastaFile("test-data/ecoli_unitigs.fasta");
 
     for ( Unitig const & unitig : unitigs ) {
         sprintf( name, "utg%.6ld%c", i++ + 1, "lc"[unitig.isCircular] );
@@ -165,8 +165,6 @@ void logUnitigs( const Unitigs & unitigs, const ReadTrims & readTrims ) {
                  !unitig.sequence.empty() ? unitig.sequence.c_str() : "*",
                  unitig.length
                );
-
-        if (unitig.length) fprintf(fasta, ">%s\n%s\n", name, unitig.sequence.c_str());
 
         read_size_t cumLength( 0 );
         for ( UnitigRead const & unitigRead : unitig.reads ) {
@@ -192,8 +190,9 @@ void logUnitigs( const Unitigs & unitigs, const ReadTrims & readTrims ) {
 
             cumLength += length;
         }
+        printf("%d\n",unitig.length);
 
     }
-    // todo: print joined unitigs
-    // todo: print unitig summaries
+    fclose(fasta);
+
 }

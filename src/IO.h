@@ -10,6 +10,7 @@
 #include "Overlap.h"
 #include "Graph.h"
 #include "ReadTrim.h"
+#include "Unitig.h"
 
 void writeGraphToSIF( const std::string & path, const Graph & graph );
 
@@ -26,3 +27,6 @@ void logOverlaps( const Overlaps & overlaps );
 void logTrimmedOverlap( const Overlap & overlap, const ReadTrims & readTrims );
 
 void logTrimmedOverlaps( const Overlaps & overlaps, const ReadTrims & readTrims );
+
+
+void unitigsToFASTA( const std::string & outputPath, const Unitigs & unitigs );

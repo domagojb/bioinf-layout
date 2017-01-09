@@ -1,5 +1,4 @@
 #include <iostream>
-#include "common.h"
 #include "Overlap.h"
 #include "params.h"
 #include "ReadTrim.h"
@@ -7,18 +6,16 @@
 #include "OverlapUtils.h"
 #include "IO.h"
 #include "GraphUtils.h"
-#include "Unitig.h"
 #include "UnitigUtils.h"
+#include "dotter.h"
 
-#define DATASET "ecoli"
-
-int main() {
+Unitigs runAlgorithm(const std::string & overlapsPath, const std::string & readsPath){
 
     Overlaps overlaps;
     Params   params( getDefaultParams());
 
     std::cout << "1) Reading overlaps and reads" << std::endl;
-    loadPAF( overlaps, "../test-data/" DATASET "_overlaps.paf", params );
+    loadPAF( overlaps, overlapsPath, params );
 
     std::cout << "2) Proposing read trims" << std::endl;
     ReadTrims readTrims;
@@ -49,20 +46,37 @@ int main() {
     std::cout << "10) Cutting tips" << std::endl;
     cutTips( g, readTrims, params );
 
-    writeGraphToSIF( "../test-data/" DATASET "_notips.sif", g );
-
     std::cout << "11) Popping bubbles" << std::endl;
     popBubbles( g, readTrims );
 
-    writeGraphToSIF( "../test-data/" DATASET "_nobubles.sif", g );
-
-    Unitigs unitigs;
     std::cout << "12) Generating unitigs" << std::endl;
+    Unitigs unitigs;
     generateUnitigs( unitigs, g, readTrims );
 
-    assignSequencesToUnitigs( unitigs, readTrims, "../test-data/" DATASET "_reads.fasta" );
+    if (!readsPath.empty()) {
+        std::cout << "13) Assigning sequences to unitigs" << std::endl;
+        assignSequencesToUnitigs( unitigs, readTrims, readsPath );
+    }
 
-    logUnitigs( unitigs, readTrims );
+    return unitigs;
+}
+
+int main(int argc, char *argv[]) {
+
+    if ( argc <= 2 ) return -1;
+
+    std::string overlapsPath( argv[1] );
+    std::string readsPath( argc >= 2 ? argv[2] : "" );
+    std::string referenceSequencePath( argc >= 3 ? argv[3] : "" );
+    std::string resultSequencePath( "/tmp/result.fasta" );
+
+    Unitigs unitigs = runAlgorithm( overlapsPath, readsPath );
+
+    if ( referenceSequencePath.empty()) return 0;
+
+    std::cout << "Visualize dotter" << std::endl;
+    unitigsToFASTA( resultSequencePath, unitigs );
+    dotter( resultSequencePath, referenceSequencePath );
 
     return 0;
 }

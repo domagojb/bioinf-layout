@@ -163,3 +163,11 @@ void writeGraphToSIF( const std::string & path, const Graph & graph ) {
     os.flush();
     os.close();
 }
+
+void unitigsToFASTA( const std::string & outputPath, const Unitigs & unitigs ) {
+    FILE *fasta = fopen(outputPath.c_str(), "w");
+    size_t i(0);
+    for ( Unitig const & unitig : unitigs ) fprintf(fasta, ">%ld\n%s\n", ++i, unitig.sequence.c_str());
+    fclose(fasta);
+
+}
