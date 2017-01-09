@@ -308,17 +308,15 @@ void trimReads( Overlaps & overlaps, ReadTrims & readTrims, const Params params 
     TIMER_END("Done trimming, time passed: ");
 }
 
-void filterReads( Overlaps & overlaps, const ReadTrims & readTrims, const Params params ) {
+void filterReads( Overlaps & overlaps, ReadTrims & readTrims, const Params params ) {
     TIMER_START("Filtering reads...");
 
     Overlaps newOverlaps;
-    uint64_t tot_dp = 0, tot_len = 0;
+    read_size_t tot_dp ( 0), tot_len (0);
 
     for ( const auto & overlap : overlaps ) {
-        auto const & aTrim( readTrims.at( overlap.aId()));
-        auto const & bTrim( readTrims.at( overlap.bId()));
-
-        if ( aTrim.del || bTrim.del ) continue; // todo: check if necessary, I think not
+        auto const & aTrim( readTrims[overlap.aId()]);
+        auto const & bTrim( readTrims[ overlap.bId()]);
 
         OverlapClassification overlapClassification;
         Edge                  edge;
@@ -328,12 +326,10 @@ void filterReads( Overlaps & overlaps, const ReadTrims & readTrims, const Params
                                             aTrim.length(),
                                             bTrim.length(),
                                             params.maximalOverhangLength * 1.5,
-                                            0.5,//params.mappingLengthRatio,
-                                            params.minimalOverlap / 2
+                                            0.5//params.mappingLengthRatio,
                                           );
         switch ( overlapClassification ) {
             case OVERLAP_INTERNAL_MATCH:
-            case OVERLAP_SHORT:
                 break;
             case OVERLAP_A_CONTAINED:
                 tot_dp += aTrim.length();
@@ -363,8 +359,6 @@ void filterReads( Overlaps & overlaps, const ReadTrims & readTrims, const Params
 
     double cov = (double) tot_dp / tot_len;
 
-    //    std::cout << tot_len << std::endl;
-    //    std::cout << tot_dp << std::endl;
     fprintf( stdout, "%ld hits remain after filtering; crude coverage after filtering: %.2f\n", overlaps.size(), cov );
 
     TIMER_END("Done filtering, time passed: ");
@@ -376,8 +370,7 @@ void classifyOverlapAndMeasureItsLength( OverlapClassification & overlapClassifi
                                          read_size_t aLength,
                                          read_size_t bLength,
                                          read_size_t maximalOverhangLength,
-                                         float mappingLengthRatio,
-                                         read_size_t minimalOverlap ) {
+                                         float mappingLengthRatio ) {
     read_size_t bLengthLeft, bLengthRight, overhangLeft, overhangRight;
     read_size_t aStart( overlap.aStart());
 
@@ -426,11 +419,6 @@ void classifyOverlapAndMeasureItsLength( OverlapClassification & overlapClassifi
         edge.bIsReversed   = !overlap.isReversed();
         edge.overlapLength = ( aLength - overlap.aEnd()) - bLengthRight;
     }
-    if ( overlap.aEnd() - aStart + overhangLeft + overhangRight < minimalOverlap ||
-         overlap.bEnd() - overlap.bStart() + overhangLeft + overhangRight < minimalOverlap ) {
-        overlapClassification = OVERLAP_SHORT;
-        return;
-    }
     overlapClassification = OVERLAP_A_TO_B; // or BTOA
 
     edge.aId = overlap.aId();
@@ -477,8 +465,7 @@ void filterContained( Overlaps & overlaps, ReadTrims & readTrims, const Params &
                                             readTrims[overlap.aId()].length(),
                                             readTrims[overlap.bId()].length(),
                                             params.maximalOverhangLength,
-                                            params.mappingLengthRatio,
-                                            params.minimalOverlap
+                                            params.mappingLengthRatio
                                           );
         if ( overlapClassification == OVERLAP_A_CONTAINED ) {
             readTrims[overlap.aId()].del = true;

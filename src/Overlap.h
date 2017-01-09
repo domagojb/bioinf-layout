@@ -12,7 +12,6 @@
 
 enum OverlapClassification {
     OVERLAP_INTERNAL_MATCH,
-    OVERLAP_SHORT,
     OVERLAP_A_CONTAINED,
     OVERLAP_B_CONTAINED,
     OVERLAP_A_TO_B,

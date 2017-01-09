@@ -25,8 +25,7 @@ void classifyOverlapAndMeasureItsLength( OverlapClassification & overlapClassifi
                                          read_size_t aLength,
                                          read_size_t bLength,
                                          read_size_t maximalOverhangLength,
-                                         float mappingLengthRatio,
-                                         read_size_t minimalOverlap );
+                                         float mappingLengthRatio );
 
 
-void filterReads( Overlaps & overlaps, const ReadTrims & readTrims, const Params params );
+void filterReads( Overlaps & overlaps, ReadTrims & readTrims, const Params params );

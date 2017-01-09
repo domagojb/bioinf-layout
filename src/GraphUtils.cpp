@@ -95,8 +95,7 @@ void generateGraph( Graph & g, const Overlaps & overlaps, const ReadTrims & read
                                             readTrims.at( o.aId()).length(),
                                             readTrims.at( o.bId()).length(),
                                             params.maximalOverhangLength,
-                                            params.mappingLengthRatio,
-                                            params.minimalOverlap
+                                            params.mappingLengthRatio
                                           );
         if ( c == OVERLAP_A_TO_B || c == OVERLAP_B_TO_A ) {
             g[std::make_pair( e.aId, e.aIsReversed )].push_back( e );
