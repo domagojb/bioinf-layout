@@ -308,58 +308,31 @@ void trimReads( Overlaps & overlaps, ReadTrims & readTrims, const Params params 
     TIMER_END("Done trimming, time passed: ");
 }
 
-void filterReads( Overlaps & overlaps, ReadTrims & readTrims, const Params params ) {
-    TIMER_START("Filtering reads...");
+void filterInternalReads( Overlaps & overlaps, ReadTrims & readTrims, const Params params ) {
+    TIMER_START("Filtering internal reads...");
 
     Overlaps newOverlaps;
-    read_size_t tot_dp ( 0), tot_len (0);
+    OverlapClassification overlapClassification;
+    Edge                  edge;
 
     for ( const auto & overlap : overlaps ) {
-        auto const & aTrim( readTrims[overlap.aId()]);
-        auto const & bTrim( readTrims[ overlap.bId()]);
-
-        OverlapClassification overlapClassification;
-        Edge                  edge;
         classifyOverlapAndMeasureItsLength( overlapClassification,
                                             edge,
                                             overlap,
-                                            aTrim.length(),
-                                            bTrim.length(),
+                                            readTrims[overlap.aId()].length(),
+                                            readTrims[ overlap.bId()].length(),
                                             params.maximalOverhangLength * 1.5,
                                             0.5//params.mappingLengthRatio,
                                           );
-        switch ( overlapClassification ) {
-            case OVERLAP_INTERNAL_MATCH:
-                break;
-            case OVERLAP_A_CONTAINED:
-                tot_dp += aTrim.length();
-                newOverlaps.emplace_back( overlap );
-                break;
-            case OVERLAP_B_CONTAINED:
-                tot_dp += bTrim.length();
-                newOverlaps.emplace_back( overlap );
-                break;
-            case OVERLAP_A_TO_B:
-            case OVERLAP_B_TO_A:
-                newOverlaps.emplace_back( overlap );
-                tot_dp += edge.overlapLength;
-                break;
-        }
+        if(overlapClassification == OVERLAP_INTERNAL_MATCH) continue;
+
+        newOverlaps.emplace_back( overlap );
     }
 
     overlaps.swap( newOverlaps );
 
-    for ( size_t i = 1; i <= overlaps.size(); ++i ) {
-        read_id_t aIdCur  = overlaps[i].aId();
-        read_id_t aIdLast = overlaps[i - 1].aId();
-        if ( i == overlaps.size() || aIdCur != aIdLast ) {
-            tot_len += readTrims.at( aIdLast ).length();
-        }
-    }
 
-    double cov = (double) tot_dp / tot_len;
-
-    fprintf( stdout, "%ld hits remain after filtering; crude coverage after filtering: %.2f\n", overlaps.size(), cov );
+    fprintf( stdout, "%ld hits remain after filtering internal reads\n", overlaps.size() );
 
     TIMER_END("Done filtering, time passed: ");
 }

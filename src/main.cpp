@@ -62,8 +62,8 @@ int main() {
     std::cout << "3) Trimming reads" << std::endl;
     trimReads( overlaps, readTrims, params );
 
-    std::cout << "4) Filtering reads" << std::endl;
-    filterReads( overlaps, readTrims, params );
+    std::cout << "4) Filtering internal reads" << std::endl;
+    filterInternalReads( overlaps, readTrims, params );
 
     std::cout << "5) Chimering reads" << std::endl;
     filterChimeric( overlaps, readTrims, params );

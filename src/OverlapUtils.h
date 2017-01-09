@@ -28,4 +28,4 @@ void classifyOverlapAndMeasureItsLength( OverlapClassification & overlapClassifi
                                          float mappingLengthRatio );
 
 
-void filterReads( Overlaps & overlaps, ReadTrims & readTrims, const Params params );
+void filterInternalReads( Overlaps & overlaps, ReadTrims & readTrims, const Params params );
