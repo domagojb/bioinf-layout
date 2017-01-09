@@ -8,46 +8,33 @@
 #include "OverlapUtils.h"
 
 static bool
-isChimeric( size_t start, size_t end, const Overlaps & overlaps, const ReadTrims & readTrims, const Params & params ) {
+isChimeric( size_t start, size_t end, const Overlaps & overlaps, ReadTrims & readTrims, const Params & params ) {
     std::vector<std::pair<int, bool>> lefties; // checks left overhang
     std::vector<std::pair<int, bool>> righties; // checks right overhand
-    for ( size_t                      i = start; i < end; i++ ) {
+    for ( size_t                      i (start) ; i < end; i++ ) {
         const Overlap & o = overlaps[i];
 
-        int alen   = readTrims.at( o.aId()).length();
-        int blen   = readTrims.at( o.bId()).length();
-        //        printf("%d %d\n",alen,blen);
+        int alen   = readTrims[ o.aId()].length();
+        int blen   = readTrims[ o.bId()].length();
+
         int alhang = o.aStart();
         int arhang = alen - o.aEnd();
 
         int blhang = o.isReversed() ? blen - o.bEnd() : o.bStart();
         int brhang = o.isReversed() ? o.bStart() : blen - o.bEnd();
 
-        //        printf("%d %d %d %d %d %d\n",alen,blen,alhang,arhang,blhang,brhang);
-
-
         if ( alhang < params.maximalOverhangLength && alhang < blhang ) {
             if ( arhang > params.maximalOverhangLength && brhang > params.maximalOverhangLength ) {
                 lefties.emplace_back( arhang, true );
-                //                printf("arhang true\n");
             } else if ( arhang > brhang && brhang < params.maximalOverhangLength ) {
                 lefties.emplace_back( arhang, false );
-                //                printf("arhang false\n");
-                //            } else {
-                //                printf("skip r\n");
             }
         } else if ( arhang < params.maximalOverhangLength && arhang < brhang ) {
             if ( alhang > params.maximalOverhangLength && blhang > params.maximalOverhangLength ) {
-                //                printf("alhang true\n");
                 righties.emplace_back( alhang, true );
             } else if ( alhang > blhang && blhang < params.maximalOverhangLength ) {
                 righties.emplace_back( alhang, false );
-                //                printf("alhang false\n");
-                //            } else {
-                //                printf("skip l\n");
             }
-            //        } else {
-            //            printf("skip\n");
         }
     }
     if ( lefties.size() < params.minimalReadCoverage ) return false;
@@ -62,33 +49,21 @@ isChimeric( size_t start, size_t end, const Overlaps & overlaps, const ReadTrims
     int ac  = 0;
     int bc  = 0;
     for ( const auto & pair : lefties ) {
-        //        std::cout<<pair.first<<" "<<pair.second<<std::endl;
-        if ( pair.second ) { ( ac++ ); }
-        else { ( bc++ ); }
+        pair.second ? ac++ : bc++;
         max = max > ac - bc ? max : ac - bc;
     }
 
-    if ( max >= params.minimalReadCoverage ) {
-        return true;
-    }
-
-    //    std::cout<<lefties.size()<<std::endl;
-    //    std::cout<<righties.size()<<std::endl;
+    if ( max >= params.minimalReadCoverage ) return true;
 
     max = 0;
     ac  = 0;
     bc  = 0;
     for ( const auto & pair : righties ) {
-        //        std::cout<<pair.first<<" "<<pair.second<<std::endl;
-        if ( pair.second ) { ac++; }
-        else { bc++; }
+        pair.second ? ac++ : bc++;
         max = max > ac - bc ? max : ac - bc;
     }
 
-    if ( max >= params.minimalReadCoverage ) {
-        return true;
-    }
-    return false;
+    return max >= params.minimalReadCoverage;
 }
 
 static void extractPoints( std::vector<std::pair<int, bool>> & points,
@@ -406,14 +381,11 @@ void classifyOverlapAndMeasureItsLength( OverlapClassification & overlapClassifi
 void filterChimeric( const Overlaps & overlaps, ReadTrims & readTrims, const Params & params ) {
     TIMER_START("Filtering chimeric...");
 
-    size_t start = 0;
-
     size_t chimericCnter = 0;
 
-    for ( size_t i = 1; i <= overlaps.size(); i++ ) {
+    for ( size_t i(1), start(0); i <= overlaps.size(); i++ ) {
         if ( i == overlaps.size() || overlaps[i].aId() != overlaps[start].aId()) {
-            bool b = isChimeric( start, i, overlaps, readTrims, params );
-            if ( b ) {
+            if ( isChimeric( start, i, overlaps, readTrims, params ) ) {
                 readTrims[overlaps[start].aId()].del = true;
                 ++chimericCnter;
             }
