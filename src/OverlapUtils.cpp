@@ -399,7 +399,6 @@ void filterChimeric( const Overlaps & overlaps, ReadTrims & readTrims, const Par
 
 void filterContained( Overlaps & overlaps, ReadTrims & readTrims, const Params & params ) {
     TIMER_START("Filtering contained...");
-    size_t tcont = 0, qcont = 0;
 
     for ( auto & overlap : overlaps ) {
         OverlapClassification overlapClassification;
@@ -414,10 +413,8 @@ void filterContained( Overlaps & overlaps, ReadTrims & readTrims, const Params &
                                           );
         if ( overlapClassification == OVERLAP_A_CONTAINED ) {
             readTrims[overlap.aId()].del = true;
-            qcont++;
         } else if ( overlapClassification == OVERLAP_B_CONTAINED ) {
             readTrims[overlap.bId()].del = true;
-            tcont++;
         }
     }
 
@@ -427,21 +424,19 @@ void filterContained( Overlaps & overlaps, ReadTrims & readTrims, const Params &
                                     }
                                   ), overlaps.end());
 
-    for ( auto & readTrim : readTrims ) {
-        readTrim.second.counter = 0;
-    }
-    for ( auto & overlap : overlaps ) {
+    // if a read has no overlaps, mark it for removal and remove it at the end
+    for ( auto && readTrim : readTrims ) readTrim.second.counter = 0;
+
+    for ( auto && overlap : overlaps ) {
         ++readTrims[overlap.aId()].counter;
         ++readTrims[overlap.bId()].counter;
     }
-    for ( auto & readTrim : readTrims ) {
-        if(readTrim.second.counter == 0) readTrim.second.del = true;
-    }
+    for ( auto && readTrim : readTrims ) if(readTrim.second.counter == 0) readTrim.second.del = true;
 
     // apparently there is no better way to filter a dict, pythonic way would be dict = filter(lambda x: x.second.del,dict), but hey, dis iz cpp
     for ( auto iter( readTrims.begin()); iter != readTrims.end(); ) {
         if ( iter->second.del ) {
-            readTrims.erase( iter++ );
+            iter = readTrims.erase( iter );
         } else {
             ++iter;
         }
