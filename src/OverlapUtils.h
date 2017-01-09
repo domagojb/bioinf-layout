@@ -11,17 +11,13 @@
 #include "Graph.h"
 #include "params.h"
 
-void proposeReadTrims( ReadTrims & readTrims, const Overlaps & overlaps, const Params & params, bool clipEndings );
+void proposeReadTrims( ReadTrims & readTrims, const Overlaps & overlaps, const Params & params );
 
 void filterChimeric( const Overlaps & overlaps, ReadTrims & readTrims, const Params & params );
 
 void filterContained( Overlaps & overlaps, ReadTrims & readTrims, const Params & params );
 
 void trimReads( Overlaps & overlaps, ReadTrims & readTrims, const Params params );
-
-
-void mergeTrims( ReadTrims & readTrims, const ReadTrims & readTrims2 );
-
 
 void classifyOverlapAndMeasureItsLength( OverlapClassification & overlapClassification,
                                          Edge & edge,

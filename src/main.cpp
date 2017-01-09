@@ -10,7 +10,7 @@
 #include "Unitig.h"
 #include "UnitigUtils.h"
 
-#define DATASET "lambda"
+#define DATASET "ecoli"
 
 int count(const Graph & g){
     int cnt =0;
@@ -57,7 +57,7 @@ int main() {
 
     std::cout << "2) Proposing read trims" << std::endl;
     ReadTrims readTrims;
-    proposeReadTrims( readTrims, overlaps, params, true );
+    proposeReadTrims( readTrims, overlaps, params );
 
     std::cout << "3) Trimming reads" << std::endl;
     trimReads( overlaps, readTrims, params );

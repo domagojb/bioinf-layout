@@ -98,7 +98,6 @@ void loadPAF( Overlaps & overlaps, const std::string & path, const Params & para
                                  );
 
         }
-
     }
 
     // sort overlaps
