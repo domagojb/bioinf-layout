@@ -5,6 +5,7 @@ set(CMAKE_CXX "clang++")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -DNDEBUG")
 
+add_definitions(-DUTILS_TIMER)
 
 file(GLOB SOURCE_FILES "*.h" "*.cpp")
 

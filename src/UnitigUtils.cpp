@@ -5,9 +5,13 @@
 #include <assert.h>
 #include <unordered_set>
 #include <iostream>
+#include <algorithm>
 #include "UnitigUtils.h"
 
 void generateUnitigs( Unitigs & unitigs, Graph const & g, ReadTrims const & readTrims ) {
+#ifdef UTILS_TIMER
+    TIMER_START("Generating unitigs...");
+#endif
     //#define printv(name, v) name<<" "<<(v).first<<" !"[(v).second]
 
     UnitigReads unitigReads;
@@ -97,6 +101,9 @@ void generateUnitigs( Unitigs & unitigs, Graph const & g, ReadTrims const & read
 
     std::cout << "Generated " << unitigs.size() << " unitig" << " s"[unitigs.size() > 1] << std::endl;
     // todo: joining unitigs
+#ifdef UTILS_TIMER
+    TIMER_END("Done with unitigs, time elapsed: ");
+#endif
 }
 
 
