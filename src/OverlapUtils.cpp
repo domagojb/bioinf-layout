@@ -178,7 +178,7 @@ void proposeReadTrims( ReadTrims & readTrims, const Overlaps & overlaps, const P
                 }
             }
 
-            // if has found any candidate and is valid consider it sane
+            // if it hasn't found any good region mark the read for deletion
             bool isSaneTrim = best_start + params.minAllowedMatchSpan < best_end;
             readTrims[aId] = ReadTrim( best_start, best_end, !isSaneTrim );
             if ( isSaneTrim ) ++saneTrimCounter;
@@ -195,17 +195,20 @@ void proposeReadTrims( ReadTrims & readTrims, const Overlaps & overlaps, const P
 void trimReads( Overlaps & overlaps, ReadTrims & readTrims, const Params params ) {
     TIMER_START("Trimming reads...");
 
+    // trimming proposed reads
+
     Overlaps newOverlaps;
 
     for ( const auto & overlap : overlaps ) {
-        auto const aTrim( readTrims[ overlap.aId()]);
-        auto const bTrim( readTrims[overlap.bId()]);
+        auto const & aTrim( readTrims[ overlap.aId()]);
+        auto const &bTrim( readTrims[overlap.bId()]);
 
-        // read A or read B is considered invalid so delete overlap between them
+        // if read A or read B is deleted, delete overlap between them (do not emplace it to new overlap vec)
         if ( aTrim.del || bTrim.del ) continue;
 
         read_size_t aStartNew, aEndNew, bStartNew, bEndNew;
 
+        // trim overlaps based on read trims, if there is overlap that exceeds read trim region, trim the read also
         if ( overlap.isReversed()) {
             if ( overlap.bEnd() < bTrim.end ) {
                 aStartNew = overlap.aStart();
@@ -249,6 +252,8 @@ void trimReads( Overlaps & overlaps, ReadTrims & readTrims, const Params params 
                 bEndNew = overlap.bEnd() - ( overlap.aEnd() - aTrim.end );
             }
         }
+
+        // convert overlap to read trim coordinate system
         if ( aStartNew > aTrim.start ) {
             aStartNew = aStartNew - aTrim.start;
         } else {
@@ -270,19 +275,20 @@ void trimReads( Overlaps & overlaps, ReadTrims & readTrims, const Params params 
             bEndNew = bTrim.end - bTrim.start;
         }
 
-        //        std::cout<<aStartNew<<" "<<aEndNew<<" "<<bStartNew<<" "<<bEndNew<<std::endl;
-
         read_size_t aSpanNew( aEndNew - aStartNew );
         read_size_t bSpanNew( bEndNew - bStartNew );
 
+        // if match span is too small discard overlap
         if ( aSpanNew < params.minAllowedMatchSpan || bSpanNew < params.minAllowedMatchSpan ) continue;
 
-        double r = (double) ( aSpanNew + bSpanNew ) / ( overlap.aSpan() + overlap.bSpan());
 
+        // brother to brother
+        double r = (double) ( aSpanNew + bSpanNew ) / ( overlap.aSpan() + overlap.bSpan());
         read_size_t alignmentBlockLength( static_cast<read_size_t>(std::round( overlap.alignmentBlockLength() * r )));
         read_size_t numberOfSequenceMatches( static_cast<read_size_t>(std::round( overlap.numberOfSequenceMatches() * r
                                                                                 )));
 
+        // construct new possibly trimmed and shifted overlap
         newOverlaps.emplace_back( overlap.aId(),
                                   overlap.aLength(),
                                   aStartNew,
@@ -295,12 +301,6 @@ void trimReads( Overlaps & overlaps, ReadTrims & readTrims, const Params params 
                                   numberOfSequenceMatches,
                                   alignmentBlockLength
                                 );
-        //        fprintf(stdout,"%s\n",aTrim.toString().c_str());
-        //        fprintf(stdout,"%s\n",bTrim.toString().c_str());
-
-        //        fprintf(stdout,"%s\n",newOverlaps.back().toString().c_str());
-        //        logTrimmedOverlap(newOverlaps.back(),readTrims);
-
     }
     overlaps.swap( newOverlaps );
 
