@@ -6,7 +6,6 @@
 #include <algorithm>
 #include <iostream>
 #include "OverlapUtils.h"
-#include <chrono>
 
 static bool
 isChimeric( size_t start, size_t end, const Overlaps & overlaps, const ReadTrims & readTrims, const Params & params ) {
@@ -93,12 +92,11 @@ isChimeric( size_t start, size_t end, const Overlaps & overlaps, const ReadTrims
 }
 
 static void extractPoints( std::vector<std::pair<int, bool>> & points,
-                    float minimalIdentityFactor,
-                    int endClipping,
                     const Overlaps & overlaps,
                     size_t beginIdx,
                     size_t endIdx,
-                    int aId
+                    int aId,
+                   const Params & params
 ) {
     for ( auto i( beginIdx ); i < endIdx; ++i ) {
 
@@ -109,13 +107,13 @@ static void extractPoints( std::vector<std::pair<int, bool>> & points,
 
         // large relative levenshtein distance of a match?
         // todo: not in paper, could be deleted
-        if ( overlap.numberOfSequenceMatches() < overlap.alignmentBlockLength() * minimalIdentityFactor ) continue;
+        if ( overlap.numberOfSequenceMatches() < overlap.alignmentBlockLength() * params.minimalIdentityFactor ) continue;
 
         // only accept overlaps with match span at least 2 * endClipping == minAllowedMatchSpan
-        auto const aStartNew( overlap.aStart() + endClipping );
-        auto const aEndNew( overlap.aEnd() - endClipping );
+        auto const aStartNew( overlap.aStart()  );
+        auto const aEndNew( overlap.aEnd()  );
 
-        if ( aStartNew < aEndNew ) {
+        if ( aStartNew + params.minAllowedMatchSpan < aEndNew ) {
             points.emplace_back( aStartNew, false );
             points.emplace_back( aEndNew, true);
         }
@@ -135,7 +133,7 @@ void proposeReadTrims( ReadTrims & readTrims, const Overlaps & overlaps, const P
 
     std::vector<std::pair<read_size_t, bool>> points;
 
-    read_size_t endClipping( params.minAllowedMatchSpan / 2 );
+//    read_size_t endClipping( params.minAllowedMatchSpan / 2 );
     auto        last( 0UL );
     auto        overlapsCount( overlaps.size());
     auto        saneTrimCounter( 0UL );
@@ -147,8 +145,7 @@ void proposeReadTrims( ReadTrims & readTrims, const Overlaps & overlaps, const P
 
             // all overlaps with same aId are overlaps[last:i-1]
             // extract start and end points at the query for all overlaps on it
-            extractPoints( points, params.minimalIdentityFactor, endClipping, overlaps, last, i, aId );
-
+            extractPoints( points, overlaps, last, i, aId, params );
 
             // do some magic to extract the largest portion of read which is covered with at least minimalReadCoverage
             // overlaps, similar to finding part of math expression where there are at least 3 brackets around:
@@ -167,23 +164,23 @@ void proposeReadTrims( ReadTrims & readTrims, const Overlaps & overlaps, const P
                 pointIsEnd ? --readCoverage : ++readCoverage;
 
                 if ( oldReadCoverage < params.minimalReadCoverage && params.minimalReadCoverage == readCoverage ) {
-                    // entering candidate start position
+                    // entering candidate with minimalReadCoverage overlaps
                     start = pointPosition;
                 } else if ( readCoverage < params.minimalReadCoverage &&
                             params.minimalReadCoverage == oldReadCoverage ) {
-                    // leaving candidate
+                    // leaving candidate with minimalReadCoverage overlaps
                     read_size_t len( pointPosition - start );
                     if ( len > best_end - best_start ) {
-                        // if candidate has currently the largest
+                        // if candidate is currently the largest region with minimalReadCoverage overlaps remember it
                         best_start = start;
                         best_end   = pointPosition;
                     }
                 }
             }
 
-            // if trim start < trim end consider it sane or set delete flag otherwise
-            bool isSaneTrim = best_start < best_end;
-            readTrims[aId] = ReadTrim( best_start - endClipping, best_end + endClipping, !isSaneTrim );
+            // if has found any candidate and is valid consider it sane
+            bool isSaneTrim = best_start + params.minAllowedMatchSpan < best_end;
+            readTrims[aId] = ReadTrim( best_start, best_end, !isSaneTrim );
             if ( isSaneTrim ) ++saneTrimCounter;
 
             last = i;
