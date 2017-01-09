@@ -76,7 +76,7 @@ int main() {
     generateGraph( g, overlaps, readTrims, params );
 
     std::cout << "8) Filtering transitive edges" << std::endl;
-    filterTransitiveEdges( g, 1000 );
+    filterTransitiveEdges( g, params );
 
     std::cout << "9) Removing asymetric edges" << std::endl;
     removeAsymetricEdges( g );

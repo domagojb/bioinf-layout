@@ -4,6 +4,7 @@
 
 #include "OverlapUtils.h"
 #include "GraphUtils.h"
+#include "params.h"
 #include <iostream>
 #include <cassert>
 #include <algorithm>
@@ -114,14 +115,14 @@ void generateGraph( Graph & g, const Overlaps & overlaps, ReadTrims & readTrims,
     TIMER_END("Done generating a graph, time passed: ");
 }
 
-void filterTransitiveEdges( Graph & g, read_size_t FUZZ ) {
+void filterTransitiveEdges( Graph & g, const Params & params ) {
     TIMER_START("Filtering transitive edges...");
 
-#define VACANT 0
-#define INPLAY 1
-#define ELIMINATED 2
+#define VACANT 0 // unused vertex
+#define INPLAY 1 // used vertex
+#define ELIMINATED 2 // eliminated vertex
 
-    std::map<std::pair<read_id_t, bool>, char> mark;
+    std::map<Vertex, char> mark;
     for ( const auto & p : g ) {
         mark[p.first] = VACANT;
         for ( const Edge & vw : p.second ) { mark[std::make_pair( vw.bId, vw.bIsReversed )] = VACANT; }
@@ -133,9 +134,9 @@ void filterTransitiveEdges( Graph & g, read_size_t FUZZ ) {
 
         if ( p.second.size() == 0 ) continue;
 
-        read_size_t longest = p.second[p.second.size() - 1].overlapLength + FUZZ;
+        read_size_t longest = p.second[p.second.size() - 1].overlapLength + params.filterTransitiveFuzz;
         for ( const auto & vw : p.second ) {
-            std::pair<read_id_t, bool> w( vw.bId, vw.bIsReversed );
+            Vertex w( vw.bId, vw.bIsReversed );
             if ( mark[w] == INPLAY ) {
                 for ( const auto & wx : g[w] ) {
                     if ( wx.overlapLength + vw.overlapLength > longest ) break;
@@ -145,21 +146,21 @@ void filterTransitiveEdges( Graph & g, read_size_t FUZZ ) {
             }
         }
 
-        //        for (const auto& vw : p.second) {
-        //            read_id_t w = vw.bId;
-        //            int i = 0;
-        //            for (const auto& wx : g[w]) {
-        //                if (wx.overlapLength >= FUZZ && i != 0) break;
-        //                read_id_t x = wx.bId;
-        //                if (mark[x] == INPLAY) mark[x] = ELIMINATED;
-        //                i++;
-        //            }
-        //        }
+//        for (const auto& vw : p.second) {
+//            Vertex w(vw.bId, vw.bIsReversed);
+//            int i = 0;
+//            for (const auto& wx : g[w]) {
+//                if (wx.overlapLength >= params.filterTransitiveFuzz && i != 0) break;
+//                Vertex x(wx.bId,wx.bIsReversed);
+//                if (mark[x] == INPLAY) mark[x] = ELIMINATED;
+//                i++;
+//            }
+//        }
 
         for ( auto & vw : p.second ) {
-            std::pair<read_id_t, bool> w( vw.bId, vw.bIsReversed );
+            Vertex w( vw.bId, vw.bIsReversed );
             if ( mark[w] == ELIMINATED ) {
-                vw.del = 1;
+                vw.del = true;
                 reduceCnt++;
             }
             mark[w] = VACANT;

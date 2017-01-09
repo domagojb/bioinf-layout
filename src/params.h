@@ -21,6 +21,8 @@ typedef struct {
     float min_ovlp_drop_ratio, max_ovlp_drop_ratio, final_ovlp_drop_ratio;
     int n_rounds;
 
+    read_size_t filterTransitiveFuzz;
+
 } Params;
 
 Params getDefaultParams();

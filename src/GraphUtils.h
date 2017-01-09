@@ -9,7 +9,7 @@
 
 void generateGraph( Graph & g, const Overlaps & overlaps,  ReadTrims & readTrims, Params & params );
 
-void filterTransitiveEdges( Graph & g, read_size_t FUZZ );
+void filterTransitiveEdges( Graph & g, const Params & params );
 
 void removeAsymetricEdges( Graph & g );
 

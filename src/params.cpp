@@ -14,6 +14,7 @@ Params getDefaultParams() {
     params.mappingLengthRatio                = 0.8;
     params.minimalOverlap                    = 2000; //bp
     params.maximalTipExtension               = 4; // reads
+    params.filterTransitiveFuzz              = 1000;
 
 
     params.min_ovlp_drop_ratio = .5;
