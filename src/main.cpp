@@ -10,7 +10,7 @@
 #include "Unitig.h"
 #include "UnitigUtils.h"
 
-#define DATASET "ecoli"
+#define DATASET "lambda"
 
 int count(const Graph & g){
     int cnt =0;
@@ -57,7 +57,7 @@ int main() {
 
     std::cout << "2) Proposing read trims" << std::endl;
     ReadTrims readTrims;
-    proposeReadTrims( readTrims, overlaps, params, false );
+    proposeReadTrims( readTrims, overlaps, params, true );
 
     std::cout << "3) Trimming reads" << std::endl;
     trimReads( overlaps, readTrims, params );
@@ -65,41 +65,32 @@ int main() {
     std::cout << "4) Filtering reads" << std::endl;
     filterReads( overlaps, readTrims, params );
 
-    std::cout << "5) Proposing read trims" << std::endl;
-    ReadTrims readTrims2;
-    proposeReadTrims( readTrims2, overlaps, params, true );
-
-    std::cout << "6) Trimming reads" << std::endl;
-    trimReads( overlaps, readTrims2, params );
-
-    mergeTrims( readTrims, readTrims2 );
-
-    std::cout << "7) Chimering reads" << std::endl;
+    std::cout << "5) Chimering reads" << std::endl;
     filterChimeric( overlaps, readTrims, params );
 
-    std::cout << "8) Filtering contained reads" << std::endl;
+    std::cout << "6) Filtering contained reads" << std::endl;
     filterContained( overlaps, readTrims, params );
 
-    std::cout << "9) Generating graph" << std::endl;
+    std::cout << "7) Generating graph" << std::endl;
     Graph g;
     generateGraph( g, overlaps, readTrims, params );
 
-    std::cout << "10) Filtering transitive edges" << std::endl;
+    std::cout << "8) Filtering transitive edges" << std::endl;
     filterTransitiveEdges( g, 1000 );
 
-    std::cout << "11) Removing asymetric edges" << std::endl;
+    std::cout << "9) Removing asymetric edges" << std::endl;
     removeAsymetricEdges( g );
 
 
 
-    std::cout << "12) Cutting tips" << std::endl;
+    std::cout << "10) Cutting tips" << std::endl;
     cutTips( g, readTrims, params );
 
 
 
     writeGraphToSIF( "../test-data/" DATASET "_notips.sif", g );
 
-    std::cout << "13) Popping bubbles" << std::endl;
+    std::cout << "11) Popping bubbles" << std::endl;
     popBubbles( g, readTrims );
 
     for (int i = 0; i <= params.n_rounds; ++i) {
@@ -118,12 +109,12 @@ int main() {
 
 
     Unitigs unitigs;
-    std::cout << "14) Generating unitigs" << std::endl;
+    std::cout << "12) Generating unitigs" << std::endl;
     generateUnitigs( unitigs, g, readTrims );
 
-//    assignSequencesToUnitigs( unitigs, readTrims, "../test-data/" DATASET "_reads.fasta" );
+    assignSequencesToUnitigs( unitigs, readTrims, "../test-data/" DATASET "_reads.fasta" );
 
-//    logUnitigs( unitigs, readTrims );
+    logUnitigs( unitigs, readTrims );
 
 
     //    logGraph(g);

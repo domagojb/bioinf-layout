@@ -77,9 +77,7 @@ static void extend( std::vector<read_id_t> & readIds,
 
 
 void generateGraph( Graph & g, const Overlaps & overlaps, const ReadTrims & readTrims, Params & params ) {
-#ifdef UTILS_TIMER
     TIMER_START("Generating a graph...");
-#endif
 
     int edgeCnt = 0;
     for ( const auto & pair: readTrims ) {
@@ -114,15 +112,11 @@ void generateGraph( Graph & g, const Overlaps & overlaps, const ReadTrims & read
     }
 
     std::cout << "Generated " << edgeCnt << " edges" << std::endl;
-#ifdef UTILS_TIMER
     TIMER_END("Done generating a graph, time passed: ");
-#endif
 }
 
 void filterTransitiveEdges( Graph & g, read_size_t FUZZ ) {
-#ifdef UTILS_TIMER
     TIMER_START("Filtering transitive edges...");
-#endif
 
 #define VACANT 0
 #define INPLAY 1
@@ -206,9 +200,8 @@ void logGraph( const Graph & g ) {
 }
 
 
-void logGraphToFile( const Graph & g, const ReadTrims & readTrims ) {
-    std::ofstream myfile;
-    myfile.open( "/Users/ijurin/Documents/fer/devemestar/bioinf/bioinf-layout/src/1.txt" );
+void logGraphToFile( std::ofstream & ofstream, const Graph & g, const ReadTrims & readTrims ) {
+//    myfile.open( "/Users/ijurin/Documents/fer/devemestar/bioinf/bioinf-layout/src/1.txt" );
     for ( const auto & pair : g ) {
         auto u( pair.first );
         //        std::cout << u.first << " !"[u.second] << std::endl;
@@ -216,7 +209,7 @@ void logGraphToFile( const Graph & g, const ReadTrims & readTrims ) {
 
         for ( auto const & edge: edges ) {
             //            std::cout
-            myfile
+            ofstream
                     //                    << "\t"
                     << std::setw( 5 )
                     << edge.aId
@@ -233,7 +226,7 @@ void logGraphToFile( const Graph & g, const ReadTrims & readTrims ) {
         }
     }
     for ( const auto & pair : readTrims ) {
-        myfile
+        ofstream
                 << std::setw( 5 )
                 << pair.first
                 << " "
@@ -244,13 +237,11 @@ void logGraphToFile( const Graph & g, const ReadTrims & readTrims ) {
                 << pair.second.del
                 << std::endl;
     }
-    myfile.close();
+    ofstream.close();
 }
 
 void removeAsymetricEdges( Graph & g ) {
-#ifdef UTILS_TIMER
     TIMER_START("Removing assymetric edges...");
-#endif
     size_t cnt( 0 );
 
     for ( auto & p : g ) {
@@ -272,9 +263,7 @@ void removeAsymetricEdges( Graph & g ) {
     cleanGraph( g );
 
     std::cout << "Removing " << cnt << " asymetric edges" << std::endl;
-#ifdef UTILS_TIMER
     TIMER_END("Done with assymetric edges, time elapsed: ");
-#endif
 }
 
 void cleanGraph( Graph & g ) {
@@ -289,9 +278,7 @@ void cleanGraph( Graph & g ) {
 }
 
 void cutTips( Graph & g, ReadTrims & readTrims, const Params & params ) {
-#ifdef UTILS_TIMER
     TIMER_START("Cutting tips...");
-#endif
 
     size_t cnt( 0 );
 
@@ -343,9 +330,7 @@ void cutTips( Graph & g, ReadTrims & readTrims, const Params & params ) {
     cleanGraph( g );
 
     std::cout << "Cutting " << cnt << " tips" << std::endl;
-#ifdef UTILS_TIMER
     TIMER_END("Done cutting, time passed: ");
-#endif
 }
 
 int countIncoming( Graph & g, Vertex & v ) {
@@ -411,8 +396,8 @@ static void popBubblesInternal( int & cnt, Graph & g, const Vertex & v, ReadTrim
                 optPath[b]   = read;
                 distances[b] = distances[read] + edge.overlapLength;
             } else { // visited
-                if ( rcnt + 1 > readCnt[b] || ( rcnt + 1 == readCnt[b] && distances[read] + edge.overlapLength > distances[b] )) {
-//                if (  distances[read] + edge.overlapLength > distances[b] ) {
+//                if ( rcnt + 1 > readCnt[b] || ( rcnt + 1 == readCnt[b] && distances[read] + edge.overlapLength > distances[b] )) {
+                if (  distances[read] + edge.overlapLength > distances[b] ) {
                     optPath[b] = read;
                 }
                 if ( rcnt + 1 > readCnt[b] ) readCnt[b] = rcnt + 1;
@@ -553,9 +538,7 @@ pop_reset:
 }
 
 void popBubbles( Graph & g, ReadTrims & readTrims ) {
-#ifdef UTILS_TIMER
     TIMER_START("Popping bubbles...");
-#endif
 
 
     int cnt = 0;
@@ -580,7 +563,5 @@ void popBubbles( Graph & g, ReadTrims & readTrims ) {
     std::cout << "Poping " << cnt << " bubles" << std::endl;
 
 #undef D
-#ifdef UTILS_TIMER
     TIMER_END("Done popping, time passed: ");
-#endif
 }

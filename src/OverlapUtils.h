@@ -17,7 +17,7 @@ void filterChimeric( const Overlaps & overlaps, ReadTrims & readTrims, const Par
 
 void filterContained( Overlaps & overlaps, ReadTrims & readTrims, const Params & params );
 
-void trimReads( Overlaps & overlaps, const ReadTrims & readTrims, const Params params );
+void trimReads( Overlaps & overlaps, ReadTrims & readTrims, const Params params );
 
 
 void mergeTrims( ReadTrims & readTrims, const ReadTrims & readTrims2 );

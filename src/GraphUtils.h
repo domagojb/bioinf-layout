@@ -15,6 +15,8 @@ void removeAsymetricEdges( Graph & g );
 
 void logGraph( const Graph & g, const ReadTrims & readTrims );
 
+void logGraphToFile( std::ofstream & ofstream, const Graph & g, const ReadTrims & readTrims );
+
 void cleanGraph( Graph & g );
 
 

@@ -9,9 +9,7 @@
 #include "UnitigUtils.h"
 
 void generateUnitigs( Unitigs & unitigs, Graph const & g, ReadTrims const & readTrims ) {
-#ifdef UTILS_TIMER
     TIMER_START("Generating unitigs...");
-#endif
     //#define printv(name, v) name<<" "<<(v).first<<" !"[(v).second]
 
     UnitigReads unitigReads;
@@ -102,9 +100,7 @@ void generateUnitigs( Unitigs & unitigs, Graph const & g, ReadTrims const & read
 
     std::cout << "Generated " << unitigs.size() << " unitig" << " s"[unitigs.size() > 1] << std::endl;
     // todo: joining unitigs
-#ifdef UTILS_TIMER
     TIMER_END("Done with unitigs, time elapsed: ");
-#endif
 }
 
 
@@ -158,6 +154,9 @@ void logUnitigs( const Unitigs & unitigs, const ReadTrims & readTrims ) {
     auto   fp = stdout;
     size_t i( 0 );
     char   name[32];
+
+    FILE *fasta = fopen("../test-data/ecoli_unitigs.fasta", "w");
+
     for ( Unitig const & unitig : unitigs ) {
         sprintf( name, "utg%.6ld%c", i++ + 1, "lc"[unitig.isCircular] );
         fprintf( fp,
@@ -167,6 +166,7 @@ void logUnitigs( const Unitigs & unitigs, const ReadTrims & readTrims ) {
                  unitig.length
                );
 
+        if (unitig.length) fprintf(fasta, ">%s\n%s\n", name, unitig.sequence.c_str());
 
         read_size_t cumLength( 0 );
         for ( UnitigRead const & unitigRead : unitig.reads ) {

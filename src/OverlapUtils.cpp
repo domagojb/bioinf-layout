@@ -129,9 +129,7 @@ void extractPoints( std::vector<std::pair<int, bool>> & points,
 
 
 void proposeReadTrims( ReadTrims & readTrims, const Overlaps & overlaps, const Params & params, bool clipEndings ) {
-#ifdef UTILS_TIMER
     TIMER_START("Proposing read trims...");
-#endif
     // isolating overlaps by their query(aId) reads and proposing cuts and deletions based on them
     // overlaps are assumed to be sorted based on their query(aId) read
     // outer for loop iterates over all overlaps and when encounters a diff between last and new query(aId) read
@@ -199,22 +197,19 @@ void proposeReadTrims( ReadTrims & readTrims, const Overlaps & overlaps, const P
         }
     }
     std::cout << "Remained " << saneTrimCounter << " sane trims" << std::endl;
-#ifdef UTILS_TIMER
     TIMER_END("Done proposing, time passed: ");
-#endif
 
 }
 
 
-void trimReads( Overlaps & overlaps, const ReadTrims & readTrims, const Params params ) {
-#ifdef UTILS_TIMER
+void trimReads( Overlaps & overlaps, ReadTrims & readTrims, const Params params ) {
     TIMER_START("Trimming reads...");
-#endif
+
     Overlaps newOverlaps;
 
     for ( const auto & overlap : overlaps ) {
-        auto const aTrim( readTrims.at( overlap.aId()));
-        auto const bTrim( readTrims.at( overlap.bId()));
+        auto const aTrim( readTrims[ overlap.aId()]);
+        auto const bTrim( readTrims[overlap.bId()]);
 
         // read A or read B is considered invalid so delete overlap between them
         if ( aTrim.del || bTrim.del ) continue;
@@ -320,15 +315,12 @@ void trimReads( Overlaps & overlaps, const ReadTrims & readTrims, const Params p
     overlaps.swap( newOverlaps );
 
     std::cout << "Remained " << overlaps.size() << " overlaps" << std::endl;
-#ifdef UTILS_TIMER
     TIMER_END("Done trimming, time passed: ");
-#endif
 }
 
 void filterReads( Overlaps & overlaps, const ReadTrims & readTrims, const Params params ) {
-#ifdef UTILS_TIMER
     TIMER_START("Filtering reads...");
-#endif
+
     Overlaps newOverlaps;
     uint64_t tot_dp = 0, tot_len = 0;
 
@@ -385,9 +377,7 @@ void filterReads( Overlaps & overlaps, const ReadTrims & readTrims, const Params
     //    std::cout << tot_dp << std::endl;
     fprintf( stdout, "%ld hits remain after filtering; crude coverage after filtering: %.2f\n", overlaps.size(), cov );
 
-#ifdef UTILS_TIMER
     TIMER_END("Done filtering, time passed: ");
-#endif
 }
 
 void classifyOverlapAndMeasureItsLength( OverlapClassification & overlapClassification,
@@ -463,9 +453,7 @@ void classifyOverlapAndMeasureItsLength( OverlapClassification & overlapClassifi
 }
 
 void filterChimeric( const Overlaps & overlaps, ReadTrims & readTrims, const Params & params ) {
-#ifdef UTILS_TIMER
     TIMER_START("Filtering chimeric...");
-#endif
 
     size_t start = 0;
 
@@ -483,15 +471,11 @@ void filterChimeric( const Overlaps & overlaps, ReadTrims & readTrims, const Par
     }
 
     std::cout << "Found " << chimericCnter << " chimeric reads" << std::endl;
-#ifdef UTILS_TIMER
     TIMER_END("Done with chimeric, time passed: ");
-#endif
 }
 
 void filterContained( Overlaps & overlaps, ReadTrims & readTrims, const Params & params ) {
-#ifdef UTILS_TIMER
     TIMER_START("Filtering contained...");
-#endif
     size_t tcont = 0, qcont = 0;
 
     for ( auto & overlap : overlaps ) {
@@ -543,9 +527,7 @@ void filterContained( Overlaps & overlaps, ReadTrims & readTrims, const Params &
 
     std::cout << "Remained " << overlaps.size() << " overlaps" << std::endl;
     std::cout << "Remained " << readTrims.size() << " reads" << std::endl;
-#ifdef UTILS_TIMER
     TIMER_END("Done with contained, time passed: ");
-#endif
 }
 
 void mergeTrims( ReadTrims & readTrims, const ReadTrims & readTrims2 ) {
