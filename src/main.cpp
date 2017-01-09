@@ -10,7 +10,7 @@
 #include "dotter.h"
 
 Unitigs runAlgorithm(const std::string & overlapsPath, const std::string & readsPath){
-
+    TIMER_START("Algorithm");
     Overlaps overlaps;
     Params   params( getDefaultParams());
 
@@ -52,11 +52,14 @@ Unitigs runAlgorithm(const std::string & overlapsPath, const std::string & reads
     std::cout << "12) Generating unitigs" << std::endl;
     Unitigs unitigs;
     generateUnitigs( unitigs, g, readTrims );
+    TIMER_END("Algorithm");
 
     if (!readsPath.empty()) {
         std::cout << "13) Assigning sequences to unitigs" << std::endl;
         assignSequencesToUnitigs( unitigs, readTrims, readsPath );
     }
+
+    logUnitigs(unitigs, readTrims);
 
     return unitigs;
 }
@@ -65,16 +68,22 @@ int main(int argc, char *argv[]) {
 
     if ( argc <= 2 ) return -1;
 
+    // path to .PAF file with overlaps
     std::string overlapsPath( argv[1] );
+
+    // path to .FASTA file with reads for assigning sequences to unitigs [not required]
     std::string readsPath( argc >= 2 ? argv[2] : "" );
+
+    // path to .FASTA file with reference sequence for dotter [not required]
     std::string referenceSequencePath( argc >= 3 ? argv[3] : "" );
+
+    // path to .FASTA file with reference sequence for dotter [not required]
     std::string resultSequencePath( "/tmp/result.fasta" );
 
     Unitigs unitigs = runAlgorithm( overlapsPath, readsPath );
 
     if ( referenceSequencePath.empty()) return 0;
 
-    std::cout << "Visualize dotter" << std::endl;
     unitigsToFASTA( resultSequencePath, unitigs );
     dotter( resultSequencePath, referenceSequencePath );
 

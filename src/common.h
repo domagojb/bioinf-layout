@@ -15,7 +15,6 @@ typedef int read_size_t; // read size type (aStart, aEnd...)
 typedef std::chrono::high_resolution_clock Clock;
 #endif
 
-
 #ifdef UTILS_TIMER
 #define TIMER_START(msg)                                \
     std::cout << msg << std::endl;                      \

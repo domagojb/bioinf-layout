@@ -113,6 +113,7 @@ static char comp_tab[] = { // complement base
         127 };
 
 void assignSequencesToUnitigs( Unitigs & unitigs, const ReadTrims & readTrims, const std::string pathToFASTA ) {
+    TIMER_START(__func__);
 
     std::unordered_map<read_id_t, std::string> sequences;
 
@@ -146,27 +147,29 @@ void assignSequencesToUnitigs( Unitigs & unitigs, const ReadTrims & readTrims, c
             unitig.sequence += sequence.substr( 0, (size_t) unitigRead.second );
         }
     }
+
+    TIMER_END(__func__);
 }
 
 
 
 void logUnitigs(  const Unitigs & unitigs, const ReadTrims & readTrims ) {
+#ifdef LOG_UNITIGS
     auto   fp = stdout;
     size_t i( 0 );
     char   name[32];
-
-    std::string fastaFile("test-data/ecoli_unitigs.fasta");
 
     for ( Unitig const & unitig : unitigs ) {
         sprintf( name, "utg%.6ld%c", i++ + 1, "lc"[unitig.isCircular] );
         fprintf( fp,
                  "S\t%s\t%s\tLN:i:%d\n",
                  name,
-                 !unitig.sequence.empty() ? unitig.sequence.c_str() : "*",
+                 !unitig.sequence.empty() && LOG_UNITIGS_SEQUENCES ? unitig.sequence.c_str() : "*",
                  unitig.length
                );
 
         read_size_t cumLength( 0 );
+
         for ( UnitigRead const & unitigRead : unitig.reads ) {
             auto const & vertex( unitigRead.first );
             read_size_t length( unitigRead.second );
@@ -191,8 +194,6 @@ void logUnitigs(  const Unitigs & unitigs, const ReadTrims & readTrims ) {
             cumLength += length;
         }
         printf("%d\n",unitig.length);
-
     }
-    fclose(fasta);
-
+#endif
 }

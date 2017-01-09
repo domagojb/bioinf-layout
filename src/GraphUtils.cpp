@@ -4,20 +4,12 @@
 
 #include "OverlapUtils.h"
 #include "GraphUtils.h"
-#include "params.h"
-#include <iostream>
-#include <cassert>
-#include <algorithm>
-#include <limits>
-#include <chrono>
 #include <fstream>
 #include <assert.h>
-#include <iomanip>
 
-static void
-isUnitigEnd( GraphEdgeType & graphEdgeType, Vertex & vertexOut, Graph & graph, const Vertex & vertexIn ) {
+static void isUnitigEnd( GraphEdgeType & graphEdgeType, Vertex & vertexOut, Graph & graph, const Vertex & vertexIn ) {
 
-    const Edges & edges( graph[ std::make_pair( vertexIn.first, !vertexIn.second )]);
+    const Edges & edges( graph[invertVertex( vertexIn )] );
 
     size_t undeletedSize( 0 );
     size_t i( 0 );
@@ -41,12 +33,10 @@ isUnitigEnd( GraphEdgeType & graphEdgeType, Vertex & vertexOut, Graph & graph, c
         return;
     }
 
-    vertexOut = std::make_pair( edges[undeletedEdgeIdx].bId, edges[undeletedEdgeIdx].bIsReversed );
-
-    Vertex vertexOutNeg = std::make_pair( vertexOut.first, !vertexOut.second );
+    vertexOut = bVertex( edges[undeletedEdgeIdx] );
 
     undeletedSize = 0;
-    for ( const auto & edge : graph.at( vertexOutNeg )) {
+    for ( const auto & edge : graph[invertVertex( vertexOut )] ) {
         if ( !edge.del ) {
             ++undeletedSize;
         }
@@ -67,8 +57,7 @@ static void extend( std::vector<read_id_t> & readIds,
 
     readIds.push_back( vertex.first );
     while ( true ) {
-        isUnitigEnd( graphEdgeType, vertex, g, std::make_pair( vertex.first, !vertex.second ));
-        //        printf("%d\n",graphEdgeType);
+        isUnitigEnd( graphEdgeType, vertex, g, invertVertex( vertex ));
         if ( graphEdgeType != GraphEdgeType::GRAPH_EDGE_TYPE_MERGEABLE ) break;
 
         readIds.push_back( vertex.first );
@@ -78,12 +67,12 @@ static void extend( std::vector<read_id_t> & readIds,
 
 
 void generateGraph( Graph & g, const Overlaps & overlaps, ReadTrims & readTrims, Params & params ) {
-    TIMER_START("Generating a graph...");
+    TIMER_START( "Generating a graph..." );
 
     int edgeCnt = 0;
     for ( const auto & pair: readTrims ) {
-        g[std::make_pair( pair.first, true )].reserve( 1 );
-        g[std::make_pair( pair.first, false )].reserve( 1 );
+        g[makeVertex( pair.first, true )].reserve( 1 );
+        g[makeVertex( pair.first, false )].reserve( 1 );
     }
 
 
@@ -93,13 +82,13 @@ void generateGraph( Graph & g, const Overlaps & overlaps, ReadTrims & readTrims,
         classifyOverlapAndMeasureItsLength( c,
                                             e,
                                             o,
-                                            readTrims[ o.aId()].length(),
-                                            readTrims[ o.bId()].length(),
+                                            readTrims[o.aId()].length(),
+                                            readTrims[o.bId()].length(),
                                             params.maximalOverhangLength,
                                             params.mappingLengthRatio
                                           );
         if ( c == OVERLAP_A_TO_B_OR_B_TO_A ) {
-            g[std::make_pair( e.aId, e.aIsReversed )].push_back( e );
+            g[makeVertex( e.aId, e.aIsReversed )].push_back( e );
             edgeCnt++;
         }
     }
@@ -112,11 +101,11 @@ void generateGraph( Graph & g, const Overlaps & overlaps, ReadTrims & readTrims,
     }
 
     std::cout << "Generated " << edgeCnt << " edges" << std::endl;
-    TIMER_END("Done generating a graph, time passed: ");
+    TIMER_END( "Done generating a graph, time passed: " );
 }
 
 void filterTransitiveEdges( Graph & g, const Params & params ) {
-    TIMER_START("Filtering transitive edges...");
+    TIMER_START( "Filtering transitive edges..." );
 
 #define VACANT 0 // unused vertex
 #define INPLAY 1 // used vertex
@@ -125,40 +114,40 @@ void filterTransitiveEdges( Graph & g, const Params & params ) {
     std::map<Vertex, char> mark;
     for ( const auto & p : g ) {
         mark[p.first] = VACANT;
-        for ( const Edge & vw : p.second ) { mark[std::make_pair( vw.bId, vw.bIsReversed )] = VACANT; }
+        for ( const Edge & vw : p.second ) { mark[bVertex( vw )] = VACANT; }
     }
 
     int reduceCnt = 0;
     for ( auto & p : g ) {
-        for ( const auto & vw : p.second ) { mark[std::make_pair( vw.bId, vw.bIsReversed )] = INPLAY; }
+        for ( const auto & vw : p.second ) { mark[bVertex( vw )] = INPLAY; }
 
         if ( p.second.size() == 0 ) continue;
 
         read_size_t longest = p.second[p.second.size() - 1].overlapLength + params.filterTransitiveFuzz;
         for ( const auto & vw : p.second ) {
-            Vertex w( vw.bId, vw.bIsReversed );
+            Vertex w( bVertex( vw ));
             if ( mark[w] == INPLAY ) {
                 for ( const auto & wx : g[w] ) {
                     if ( wx.overlapLength + vw.overlapLength > longest ) break;
-                    std::pair<read_id_t, bool> x( wx.bId, wx.bIsReversed );
+                    Vertex x( bVertex( wx ));
                     if ( mark[x] == INPLAY ) mark[x] = ELIMINATED;
                 }
             }
         }
 
-//        for (const auto& vw : p.second) {
-//            Vertex w(vw.bId, vw.bIsReversed);
-//            int i = 0;
-//            for (const auto& wx : g[w]) {
-//                if (wx.overlapLength >= params.filterTransitiveFuzz && i != 0) break;
-//                Vertex x(wx.bId,wx.bIsReversed);
-//                if (mark[x] == INPLAY) mark[x] = ELIMINATED;
-//                i++;
-//            }
-//        }
+        //        for (const auto& vw : p.second) {
+        //            Vertex w(vw.bId, vw.bIsReversed);
+        //            int i = 0;
+        //            for (const auto& wx : g[w]) {
+        //                if (wx.overlapLength >= params.filterTransitiveFuzz && i != 0) break;
+        //                Vertex x(wx.bId,wx.bIsReversed);
+        //                if (mark[x] == INPLAY) mark[x] = ELIMINATED;
+        //                i++;
+        //            }
+        //        }
 
         for ( auto & vw : p.second ) {
-            Vertex w( vw.bId, vw.bIsReversed );
+            Vertex w( bVertex( vw ));
             if ( mark[w] == ELIMINATED ) {
                 vw.del = true;
                 reduceCnt++;
@@ -199,47 +188,6 @@ void logGraph( const Graph & g ) {
     }
 }
 
-
-void logGraphToFile( std::ofstream & ofstream, const Graph & g, const ReadTrims & readTrims ) {
-//    myfile.open( "/Users/ijurin/Documents/fer/devemestar/bioinf/bioinf-layout/src/1.txt" );
-    for ( const auto & pair : g ) {
-        auto u( pair.first );
-        //        std::cout << u.first << " !"[u.second] << std::endl;
-        const auto & edges( pair.second );
-
-        for ( auto const & edge: edges ) {
-            //            std::cout
-            ofstream
-                    //                    << "\t"
-                    << std::setw( 5 )
-                    << edge.aId
-                    << " !"[edge.aIsReversed]
-                    << " --"
-                    << edge.overlapLength
-                    << "--> "
-                    << std::setw( 5 )
-                    << edge.bId
-                    << " !"[edge.bIsReversed]
-                    << " "
-                    << " D"[edge.del]
-                    << std::endl;
-        }
-    }
-    for ( const auto & pair : readTrims ) {
-        ofstream
-                << std::setw( 5 )
-                << pair.first
-                << " "
-                << pair.second.start
-                << " "
-                << pair.second.end
-                << " "
-                << pair.second.del
-                << std::endl;
-    }
-    ofstream.close();
-}
-
 void removeAsymetricEdges( Graph & g ) {
     TIMER_START("Removing assymetric edges...");
     size_t cnt( 0 );
@@ -247,7 +195,7 @@ void removeAsymetricEdges( Graph & g ) {
     for ( auto & p : g ) {
         for ( auto & e : p.second ) {
             bool found = false;
-            for ( auto & e2 : g[std::make_pair( e.bId, !e.bIsReversed )] ) {
+            for ( auto & e2 : g[bInvertVertex(e)] ) {
                 if ( e2.bId == p.first.first && e2.bIsReversed != p.first.second ) {
                     found = true;
                     break;
@@ -302,10 +250,10 @@ void cutTips( Graph & g, ReadTrims & readTrims, const Params & params ) {
             readTrims[readId].del = true;
 
             for ( int i = 0; i < 2; ++i ) {
-                for ( auto & edge: g[std::make_pair( readId, static_cast<bool>(i))] ) {
+                for ( auto & edge: g[makeVertex( readId, static_cast<bool>(i))] ) {
                     edge.del = true;
 
-                    for ( auto & edge2: g[std::make_pair( edge.bId, !edge.bIsReversed )] ) {
+                    for ( auto & edge2: g[ bInvertVertex( edge )] ) {
                         if ( edge2.bId == readId && edge2.bIsReversed != edge.aIsReversed ) {
                             edge2.del = true;
                         }
@@ -323,17 +271,21 @@ void cutTips( Graph & g, ReadTrims & readTrims, const Params & params ) {
 
 int countIncoming( Graph & g, Vertex & v ) {
     int cnt = 0;
-    for ( const auto & e : g[std::make_pair( v.first, !v.second )] ) { if ( !e.del ) cnt++; }
+    for ( const auto & e : g[invertVertex(v)] ) { if ( !e.del ) cnt++; }
     return cnt;
+}
+
+template <bool shouldDelete>
+static void markEdge(Graph & g, const Vertex & u, const Vertex & v) {
+    for ( auto & edge: g[u] ) {
+        if ( edge.bId == v.first && edge.bIsReversed == v.second ) {
+            edge.del = shouldDelete;
+        }
+    }
 }
 
 static void popBubblesInternal( int & cnt, Graph & g, const Vertex & v, ReadTrims & readTrims ) {
 #define D 50000
-    bool printaj;
-    if(v.first == 2939 || v.first == 23472){
-//        printf("jej\n");
-//        printaj = true;
-    }
     std::map<Vertex, int>    distances;
     std::map<Vertex, int>    readCnt;
     std::map<Vertex, int>    unvisitedIncoming;
@@ -356,23 +308,25 @@ static void popBubblesInternal( int & cnt, Graph & g, const Vertex & v, ReadTrim
     S.push_back( read0 );
     int pv = 0;
 
+    bool terminate(false);
+
     do {
         Vertex read(S.back().first,S.back().second);
         S.pop_back();
-        if(printaj) fprintf(stderr,"From %d%c\n",read.first," !"[read.second]);
         int rcnt = readCnt[read];
 
         size_t i(0);
         for ( auto & edge: g[read]) {
             if ( edge.bId == read0.first ) {
-                goto pop_reset;
-            }  // jel se moze napisat ovak il se mora cijeli vertex usporedit && edge.bIsReversed == read0.second
+                terminate = true;
+                break;
+            }
+
             if ( edge.del ) continue;
 
             edge.visited = true;
-            if(printaj) fprintf(stderr,"\t%d%c -> %d%c\n",edge.aId," !"[edge.aIsReversed],edge.bId," !"[edge.bIsReversed]);
 
-            Vertex b = std::make_pair( edge.bId, edge.bIsReversed );
+            Vertex b(bVertex(edge));
 
             if ( distances[read] + edge.overlapLength > D ) break;
 
@@ -383,7 +337,7 @@ static void popBubblesInternal( int & cnt, Graph & g, const Vertex & v, ReadTrim
 
                 optPath[b]   = read;
                 distances[b] = distances[read] + edge.overlapLength;
-            } else { // visited
+            } else {
 //                if ( rcnt + 1 > readCnt[b] || ( rcnt + 1 == readCnt[b] && distances[read] + edge.overlapLength > distances[b] )) {
                 if (  distances[read] + edge.overlapLength > distances[b] ) {
                     optPath[b] = read;
@@ -405,122 +359,39 @@ static void popBubblesInternal( int & cnt, Graph & g, const Vertex & v, ReadTrim
             i++;
         }
 
-
-
-        if ( i<g[read].size() || S.size() == 0 ) {
-            goto pop_reset;
+        if ( i<g[read].size() || S.size() == 0 || terminate) {
+            terminate = true;
+            break;
         }
-
 
     } while ( S.size() > 1 || pv );
 //region backtrack
-    if ( S.size() == 1 && pv == 0 ) {
+    if ( !terminate && S.size() == 1 && pv == 0 ) {
         cnt++;
-//        std::cout
-//                << "Found bubble "
-//                << read0.first
-//                << " !"[read0.second]
-//                << " -> "
-//                << S.back().first
-//                << " !"[S.back().second]
-//                << std::endl;
-        std::cout
-                << "Found bubble";
-//                << read0.first
-//                << " !"[read0.second]
-//                << " -> "
-//                << S.back().first
-//                << " !"[S.back().second]
-//                << std::endl;
 
         // delete visited vertex and edges
-        for ( auto & vv : visitedV ) {
-//            std::cout << "1) Deleting read " << vv.first << std::endl;
-            readTrims[vv.first].del = true;
-            //                delv++;
-        }
+        for ( auto & vv : visitedV ) readTrims[vv.first].del = true;
+
         for ( auto & p2 : g ) {
             for ( auto & edge: p2.second ) {
                 if ( edge.visited ) {
-
-//                    std::cout
-//                            << "2) Deleting edge "
-//                            << edge.aId
-//                            << " !"[edge.aIsReversed]
-//                            << " -> "
-//                            << edge.bId
-//                            << " !"[edge.bIsReversed]
-//                            << std::endl;
-                    //                        dele++;
                     edge.del = true;
-                    for ( auto & edge2: g[std::make_pair( edge.bId, !edge.bIsReversed )] ) {
-                        if ( edge2.bId == edge.aId && edge2.bIsReversed != edge.aIsReversed ) {
-//                            std::cout
-//                                    << "X) Deleting edge "
-//                                    << edge2.aId
-//                                    << " !"[edge2.aIsReversed]
-//                                    << " -> "
-//                                    << edge2.bId
-//                                    << " !"[edge2.bIsReversed]
-//                                    << "  "
-//                                    << std::endl;
-                            edge2.del = true;
-                        }
-                    }
+                    markEdge<true>(g,invertVertex(bVertex(edge)),invertVertex(p2.first));
                 }
             }
         }
 
 
         Vertex & v = S.back();
-        bool invert(v.second);
-//            std::cout << "Visiting " << v.first << " !"[v.second] << std::endl;
         do {
             Vertex & u = optPath[v]; // u -> v
-            std::cout << " "<<v.first<<" !"[v.second^invert];
-//            std::cout << "3) Undeleting read " << v.first  << std::endl;
             readTrims[v.first].del = false;
-            //                delv--;
-            //                dele--;
-            for ( auto & edge: g[u] ) {
-                if ( edge.bId == v.first && edge.bIsReversed == v.second ) {
-//                    std::cout
-//                            << "X) Deleting edge "
-//                            << edge.aId
-//                            << " !"[edge.aIsReversed]
-//                            << " -> "
-//                            << edge.bId
-//                            << " !"[edge.bIsReversed]
-//                            << " NOT"
-//                            << std::endl;
-                    edge.del = false;
-                }
-            }
-            for ( auto & edge: g[std::make_pair( v.first, !v.second )] ) {
-                if ( edge.bId == u.first && edge.bIsReversed == !u.second ) {
-//                    std::cout
-//                            << "X) Deleting edge "
-//                            << edge.aId
-//                            << " !"[edge.aIsReversed]
-//                            << " -> "
-//                            << edge.bId
-//                            << " !"[edge.bIsReversed]
-//                            << " NOT"
-//                            << std::endl;
-                    edge.del = false;
-                }
-            }
+            markEdge<false>(g,u,v);
+            markEdge<false>(g,invertVertex(v),invertVertex(u));
             v = u;
         } while ( v != read0 );
-        std::cout << " "<<v.first<<" !"[v.second^invert];
-        std::cout<<std::endl;
-
-
-        //                cleanGraph( g );
-        //            break;
     }
 //endregion
-pop_reset:
     for ( auto & p2 : g ) { for ( auto & e : p2.second ) { e.visited = false; }}
 #undef D
 }
@@ -530,9 +401,6 @@ void popBubbles( Graph & g, ReadTrims & readTrims ) {
 
 
     int cnt = 0;
-//    popBubblesInternal( cnt, g, std::make_pair(8758,true), readTrims );
-    //    int delv = 0;
-    //    int dele = 0;
     for ( auto & p : g ) {
         if ( p.second.size() < 2 || readTrims[p.first.first].del ) continue;
         int nonDeleted = 0;
@@ -547,7 +415,6 @@ void popBubbles( Graph & g, ReadTrims & readTrims ) {
 
     cleanGraph( g );
 
-    //    std::cout << "v " << delv << " e " << dele << std::endl;
     std::cout << "Poping " << cnt << " bubles" << std::endl;
 
 #undef D
