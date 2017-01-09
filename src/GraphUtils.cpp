@@ -15,9 +15,9 @@
 #include <iomanip>
 
 static void
-isUnitigEnd( GraphEdgeType & graphEdgeType, Vertex & vertexOut, const Graph & graph, const Vertex & vertexIn ) {
+isUnitigEnd( GraphEdgeType & graphEdgeType, Vertex & vertexOut, Graph & graph, const Vertex & vertexIn ) {
 
-    const Edges & edges( graph.at( std::make_pair( vertexIn.first, !vertexIn.second )));
+    const Edges & edges( graph[ std::make_pair( vertexIn.first, !vertexIn.second )]);
 
     size_t undeletedSize( 0 );
     size_t i( 0 );
@@ -58,7 +58,7 @@ isUnitigEnd( GraphEdgeType & graphEdgeType, Vertex & vertexOut, const Graph & gr
 
 static void extend( std::vector<read_id_t> & readIds,
                     GraphEdgeType & graphEdgeType,
-                    const Graph & g,
+                    Graph & g,
                     const Vertex & v,
                     const Params & params ) {
     size_t tipExtension( params.maximalTipExtension );
@@ -280,37 +280,26 @@ void cleanGraph( Graph & g ) {
 void cutTips( Graph & g, ReadTrims & readTrims, const Params & params ) {
     TIMER_START("Cutting tips...");
 
+    std::vector<read_id_t> readIds;
     size_t cnt( 0 );
-
-    //    auto p(std::make_pair(std::make_pair(198,false),g[std::make_pair(198,false)]));
     for ( auto & p : g ) {
-        //        std::cout<<p.first.first<<" !"[p.first.second]<<std::endl;
         Vertex        vertexOut;
         GraphEdgeType graphEdgeType;
 
         if ( readTrims[p.first.first].del ) continue;
 
         isUnitigEnd( graphEdgeType, vertexOut, g, p.first );
-        //    printf("Not deleted\n");
 
         if ( graphEdgeType != GRAPH_EDGE_TYPE_TIP ) continue; // not a tip
-        //        printf("Is tip\n");
 
-        std::vector<read_id_t> readIds;
-
+        readIds.clear();
         extend( readIds, graphEdgeType, g, p.first, params );
 
         if ( graphEdgeType == GRAPH_EDGE_TYPE_MERGEABLE ) continue;
-        //        printf("Not unitig\n");
-
-        //        if (readIds.size() == 0) continue;
         ++cnt;
 
         for ( read_id_t readId: readIds ) {
             readTrims[readId].del = true;
-
-
-            // delete all outgoing edges from u and u' and all reverse edges (if u->v is deleted delete v'->u')
 
             for ( int i = 0; i < 2; ++i ) {
                 for ( auto & edge: g[std::make_pair( readId, static_cast<bool>(i))] ) {
@@ -325,7 +314,6 @@ void cutTips( Graph & g, ReadTrims & readTrims, const Params & params ) {
             }
         }
     }
-
 
     cleanGraph( g );
 
