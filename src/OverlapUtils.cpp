@@ -367,7 +367,7 @@ void classifyOverlapAndMeasureItsLength( OverlapClassification & overlapClassifi
         edge.bIsReversed   = !overlap.isReversed();
         edge.overlapLength = ( aLength - overlap.aEnd()) - bLengthRight;
     }
-    overlapClassification = OVERLAP_A_TO_B; // or BTOA
+    overlapClassification = OVERLAP_A_TO_B_OR_B_TO_A;
 
     edge.aId = overlap.aId();
     edge.bId = overlap.bId();

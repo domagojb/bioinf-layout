@@ -81,12 +81,8 @@ int main() {
     std::cout << "9) Removing asymetric edges" << std::endl;
     removeAsymetricEdges( g );
 
-
-
     std::cout << "10) Cutting tips" << std::endl;
     cutTips( g, readTrims, params );
-
-
 
     writeGraphToSIF( "../test-data/" DATASET "_notips.sif", g );
 

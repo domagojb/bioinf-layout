@@ -76,7 +76,7 @@ static void extend( std::vector<read_id_t> & readIds,
 }
 
 
-void generateGraph( Graph & g, const Overlaps & overlaps, const ReadTrims & readTrims, Params & params ) {
+void generateGraph( Graph & g, const Overlaps & overlaps, ReadTrims & readTrims, Params & params ) {
     TIMER_START("Generating a graph...");
 
     int edgeCnt = 0;
@@ -92,12 +92,12 @@ void generateGraph( Graph & g, const Overlaps & overlaps, const ReadTrims & read
         classifyOverlapAndMeasureItsLength( c,
                                             e,
                                             o,
-                                            readTrims.at( o.aId()).length(),
-                                            readTrims.at( o.bId()).length(),
+                                            readTrims[ o.aId()].length(),
+                                            readTrims[ o.bId()].length(),
                                             params.maximalOverhangLength,
                                             params.mappingLengthRatio
                                           );
-        if ( c == OVERLAP_A_TO_B || c == OVERLAP_B_TO_A ) {
+        if ( c == OVERLAP_A_TO_B_OR_B_TO_A ) {
             g[std::make_pair( e.aId, e.aIsReversed )].push_back( e );
             edgeCnt++;
         }
