@@ -5,6 +5,9 @@
 #include "OverlapUtils.h"
 #include "GraphUtils.h"
 #include <iostream>
+#include <cassert>
+#include <algorithm>
+#include <limits>
 
 static void
 isUnitigEnd( GraphEdgeType & graphEdgeType, Vertex & vertexOut, const Graph & graph, const Vertex & vertexIn ) {
@@ -312,7 +315,7 @@ void popBubbles( Graph & g, ReadTrims & readTrims ) {
         const Vertex & read0 = p.first;
 
         for ( auto & p2 : g ) {
-            distances[p2.first] = INT_MAX;
+            distances[p2.first] = std::numeric_limits<int>::max();
             readCnt[p2.first] = 0;
         }
 

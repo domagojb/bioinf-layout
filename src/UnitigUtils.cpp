@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <unordered_set>
 #include <iostream>
+#include <algorithm>
 #include "UnitigUtils.h"
 
 void generateUnitigs( Unitigs & unitigs, Graph const & g, ReadTrims const & readTrims ) {
