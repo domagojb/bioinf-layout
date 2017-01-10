@@ -14,9 +14,9 @@ void dotter( const std::string & readsPath, const std::string &referenceSequence
       <<" org.gepard.client.cmdline.CommandLine  -matrix "
       <<GEPARD_MAT
       <<" -outfile /tmp/output.jpg -seq1 "
-      <<readsPath
-      <<" -seq2 "
       <<referenceSequencePath
+      <<" -seq2 "
+      <<readsPath
       <<"; open /tmp/output.jpg";
     std::cout<<ss.str()<<std::endl;
     system(ss.str().c_str());
