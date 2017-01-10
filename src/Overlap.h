@@ -7,6 +7,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <assert.h>
 #include "common.h"
 
 
@@ -44,6 +45,37 @@ public:
             numberOfSequenceMatches_( numberOfSequenceMatches ),
             alignmentBlockLength_( alignmentBlockLength ) {
     };
+
+    Overlap(char * ptr) {
+#define READ(val) val = (decltype(val)) *((decltype(&val)) ptr),ptr+= sizeof(decltype(val))
+        READ(aId_);
+        READ(aLength_);
+        READ(aStart_);
+        READ(aEnd_);
+        READ(isReversed_);
+        READ(bId_);
+        READ(bLength_);
+        READ(bStart_);
+        READ(bEnd_);
+        READ(numberOfSequenceMatches_);
+        READ(alignmentBlockLength_);
+    }
+
+
+    void serialize(char * ptr) const {
+#define WRITE(val) *((std::remove_const_t<decltype(val)> *)ptr) = val,ptr+= sizeof(decltype(val))
+        WRITE(aId_);
+        WRITE(aLength_);
+        WRITE(aStart_);
+        WRITE(aEnd_);
+        WRITE(isReversed_);
+        WRITE(bId_);
+        WRITE(bLength_);
+        WRITE(bStart_);
+        WRITE(bEnd_);
+        WRITE(numberOfSequenceMatches_);
+        WRITE(alignmentBlockLength_);
+    }
 
 
     const std::string toStringVerbose() const;
@@ -112,6 +144,9 @@ public:
         return bEnd_ - bStart_;
     }
 
+    static size_t getSerializedSize() {
+        return sizeof(read_id_t) * 2 + sizeof(read_size_t) * 8 + sizeof( bool);
+    }
 
 private:
     read_id_t   aId_;

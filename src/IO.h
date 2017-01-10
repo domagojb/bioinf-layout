@@ -30,3 +30,7 @@ void logTrimmedOverlaps( const Overlaps & overlaps, const ReadTrims & readTrims 
 
 
 void unitigsToFASTA( const std::string & outputPath, const Unitigs & unitigs );
+
+void convertPAFtoDIM( const std::string & pathPAF, const std::string & pathDIM );
+
+void loadDIM( Overlaps & overlaps, const std::string & path, const Params & params );

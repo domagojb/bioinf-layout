@@ -15,7 +15,7 @@ Unitigs runAlgorithm(const std::string & overlapsPath, const std::string & reads
     Params   params( getDefaultParams());
 
     std::cout << "1) Reading overlaps and reads" << std::endl;
-    loadPAF( overlaps, overlapsPath, params );
+    loadDIM( overlaps, overlapsPath + ".dim", params );
 
     std::cout << "2) Proposing read trims" << std::endl;
     ReadTrims readTrims;
@@ -54,7 +54,7 @@ Unitigs runAlgorithm(const std::string & overlapsPath, const std::string & reads
     generateUnitigs( unitigs, g, readTrims );
     TIMER_END("Algorithm");
 
-    if (!readsPath.empty()) {
+    if ( ASSIGN_SEQUENCES_TO_UNITIGS && !readsPath.empty() ) {
         std::cout << "13) Assigning sequences to unitigs" << std::endl;
         assignSequencesToUnitigs( unitigs, readTrims, readsPath );
     }

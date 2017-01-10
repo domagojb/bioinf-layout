@@ -66,7 +66,7 @@ isChimeric( size_t start, size_t end, const Overlaps & overlaps, ReadTrims & rea
     return max >= params.minimalReadCoverage;
 }
 
-static void extractPoints( std::vector<std::pair<int, bool>> & points,
+static void extractPoints( std::vector<std::pair<read_id_t , bool>> & points,
                     const Overlaps & overlaps,
                     size_t beginIdx,
                     size_t endIdx,
@@ -173,6 +173,8 @@ void trimReads( Overlaps & overlaps, ReadTrims & readTrims, const Params params 
     // trimming proposed reads
 
     Overlaps newOverlaps;
+
+    newOverlaps.reserve(overlaps.size());
 
     for ( const auto & overlap : overlaps ) {
         auto const & aTrim( readTrims[ overlap.aId()]);
@@ -287,6 +289,9 @@ void filterInternalReads( Overlaps & overlaps, ReadTrims & readTrims, const Para
     TIMER_START("Filtering internal reads...");
 
     Overlaps newOverlaps;
+
+    newOverlaps.reserve(overlaps.size());
+
     OverlapClassification overlapClassification;
     Edge                  edge;
 

@@ -24,7 +24,69 @@ void writeOverlapsToSIF( const std::string & path, const Overlaps & overlaps ) {
     os.close();
 }
 
+void convertPAFtoDIM( const std::string & pathPAF, const std::string & pathDIM ) {
+    std::ifstream is;
+    is.open( pathPAF );
+
+    if ( !is.is_open()) {
+        std::cerr << "Unable to open file " << pathPAF << std::endl;
+        return;
+    }
+
+    std::ofstream os;
+
+    os.open(pathDIM, std::ofstream::out);
+
+    if( !os.is_open()){
+        std::cerr << "Unable to open file " << pathDIM << std::endl;
+    }
+
+    std::string line;
+    read_id_t     aId, bId;
+    read_size_t aStart, aEnd, aLength;
+    read_size_t bStart, bEnd, bLength;
+    char          relativeStrand;
+    read_size_t numberOfSequenceMatches;
+    read_size_t alignmentBlockLength;
+    std::string placeholder1, placeholder2;
+    size_t serializedSize( Overlap::getSerializedSize());
+    char * buffer = (char *) malloc(serializedSize);
+
+    while ( is
+            >> aId
+            >> aLength
+            >> aStart
+            >> aEnd
+            >> relativeStrand
+            >> bId
+            >> bLength
+            >> bStart
+            >> bEnd
+            >> numberOfSequenceMatches
+            >> alignmentBlockLength >> placeholder1 >> placeholder2 ) {
+
+        Overlap( aId,
+                 aLength,
+                 aStart,
+                 aEnd,
+                 relativeStrand == '-',
+                 bId,
+                 bLength,
+                 bStart,
+                 bEnd,
+                 numberOfSequenceMatches,
+                 alignmentBlockLength
+               ).serialize(buffer);
+        os.write(buffer,serializedSize);
+    }
+    free(buffer);
+    os.close();
+    is.close();
+}
+
+
 void loadPAF( Overlaps & overlaps, const std::string & path, const Params & params ) {
+    TIMER_START("loading overlaps");
     std::ifstream is;
     is.open( path );
 
@@ -43,7 +105,6 @@ void loadPAF( Overlaps & overlaps, const std::string & path, const Params & para
     read_size_t alignmentBlockLength; // the total number of sequence matches, mismatches, insertions and deletions in the alignment
 
     std::string placeholder1, placeholder2;
-
     while ( is
             >> aId
             >> aLength
@@ -105,7 +166,65 @@ void loadPAF( Overlaps & overlaps, const std::string & path, const Params & para
     std::sort( overlaps.begin(), overlaps.end());
 
     std::cout << "Read " << overlaps.size() << " overlaps" << std::endl;
+
+    TIMER_END("loading overlaps ended");
 }
+
+
+void loadDIM( Overlaps & overlaps, const std::string & path, const Params & params ) {
+    TIMER_START("loading overlaps");
+    std::ifstream is;
+    is.open( path );
+
+    if ( !is.is_open()) {
+        std::cerr << "Unable to open file " << path << std::endl;
+        return;
+    }
+
+    size_t serializedSize( Overlap::getSerializedSize());
+    char * buffer = (char *) malloc(serializedSize);
+    do {
+        is.read(buffer,serializedSize);
+
+        overlaps.emplace_back( buffer );
+
+        Overlap const & overlap(overlaps.back());
+
+        if ( overlap.aSpan() < params.minAllowedMatchSpan
+         || overlap.bSpan() < params.minAllowedMatchSpan
+         || overlap.numberOfSequenceMatches() < params.minAllowedNumberOfSequenceMatches ) {
+            overlaps.pop_back();
+        }
+        // add a->b
+
+        if ( overlap.aId() != overlap.bId() ) {
+
+            // add b->a
+            overlaps.emplace_back( overlap.bId(),
+                                   overlap.bLength(),
+                                   overlap.bStart(),
+                                   overlap.bEnd(),
+                                   overlap.isReversed(),
+                                   overlap.aId(),
+                                   overlap.aLength(),
+                                   overlap.aStart(),
+                                   overlap.aEnd(),
+                                   overlap.numberOfSequenceMatches(),
+                                   overlap.alignmentBlockLength()
+                                 );
+
+        }
+    } while (is);
+
+    // sort overlaps
+
+    std::sort( overlaps.begin(), overlaps.end());
+
+    std::cout << "Read " << overlaps.size() << " overlaps" << std::endl;
+
+    TIMER_END("loading overlaps ended");
+}
+
 
 void logOverlaps( const Overlaps & overlaps ) {
 
