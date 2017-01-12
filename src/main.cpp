@@ -15,7 +15,7 @@ Unitigs runAlgorithm(const std::string & overlapsPath, const std::string & reads
     Params   params( getDefaultParams());
 
     std::cout << "1) Reading overlaps and reads" << std::endl;
-    loadDIM( overlaps, overlapsPath + ".dim", params );
+    loadPAF( overlaps, overlapsPath, params );
 
     std::cout << "2) Proposing read trims" << std::endl;
     ReadTrims readTrims;
@@ -49,13 +49,22 @@ Unitigs runAlgorithm(const std::string & overlapsPath, const std::string & reads
     std::cout << "11) Popping bubbles" << std::endl;
     popBubbles( g, readTrims );
 
-    std::cout << "12) Generating unitigs" << std::endl;
+    std::cout << "12) Removing short edges" << std::endl;
+    for (int i = 0; i <= 2; ++i) {
+        float r = params.minOverlapDropRaion + (params.maxOverlapDropRation - params.minOverlapDropRaion) / 2 * i;
+        if (deleteShortEdges(g, r)) {
+            cutTips( g, readTrims, params );
+            popBubbles( g, readTrims );
+        }
+    }
+
+    std::cout << "13) Generating unitigs" << std::endl;
     Unitigs unitigs;
     generateUnitigs( unitigs, g, readTrims );
     TIMER_END("Algorithm");
 
     if ( ASSIGN_SEQUENCES_TO_UNITIGS && !readsPath.empty() ) {
-        std::cout << "13) Assigning sequences to unitigs" << std::endl;
+        std::cout << "14) Assigning sequences to unitigs" << std::endl;
         assignSequencesToUnitigs( unitigs, readTrims, readsPath );
     }
 

@@ -17,9 +17,8 @@ Params getDefaultParams() {
     params.filterTransitiveFuzz              = 1000;
 
 
-    params.min_ovlp_drop_ratio = .5;
-    params.max_ovlp_drop_ratio = .7;
-    params.final_ovlp_drop_ratio = .8;
+    params.minOverlapDropRaion = .5f;
+    params.maxOverlapDropRation = .7f;
     params.n_rounds = 2;
 
     return params;

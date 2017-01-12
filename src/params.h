@@ -18,7 +18,7 @@ typedef struct {
     read_size_t minimalOverlap; // bp
     std::size_t maximalTipExtension; // reads
 
-    float min_ovlp_drop_ratio, max_ovlp_drop_ratio, final_ovlp_drop_ratio;
+    float minOverlapDropRaion, maxOverlapDropRation;
     int n_rounds;
 
     read_size_t filterTransitiveFuzz;

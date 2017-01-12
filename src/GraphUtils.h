@@ -27,7 +27,8 @@ enum GraphEdgeType {
     GRAPH_EDGE_TYPE_MULTI_NEI
 };
 
-
 void cutTips( Graph & g, ReadTrims & readTrims, const Params & params );
 
 void popBubbles( Graph & g, ReadTrims & readTrims );
+
+bool deleteShortEdges(Graph &g, float r);

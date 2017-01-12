@@ -420,3 +420,26 @@ void popBubbles( Graph & g, ReadTrims & readTrims ) {
 #undef D
     TIMER_END("Done popping, time passed: ");
 }
+
+bool deleteShortEdges(Graph &g, float r) {
+    // drop edges that have r ratio less sequence matches then edge with max seq matches
+    int cntShort = 0;
+    for (auto &p : g) {
+        if (p.second.size() < 2) continue;
+        int maxOverlap = 0;
+        for (auto &e : p.second) maxOverlap = std::max(maxOverlap, e.numberOfSequenceMatches);
+
+        if (maxOverlap != p.second[0].numberOfSequenceMatches) continue;
+
+        int thres = static_cast<int>(p.second[0].numberOfSequenceMatches * r + .499);
+
+        int i;
+        for (i = static_cast<int>(p.second.size()) - 1; i >= 1 && p.second[i].numberOfSequenceMatches < thres; i--);
+        for (i = i + 1; i <  p.second.size(); ++i) p.second[i].del = true, ++cntShort;
+    }
+
+    cleanGraph(g);
+    removeAsymetricEdges(g);
+    std::cout << "Removed " << cntShort << " reads" << std::endl;
+    return cntShort != 0;
+}
