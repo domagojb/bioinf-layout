@@ -7,13 +7,15 @@
 #include "Graph.h"
 
 
-void generateGraph( Graph & g, const Overlaps & overlaps, const ReadTrims & readTrims, Params & params );
+void generateGraph( Graph & g, const Overlaps & overlaps,  ReadTrims & readTrims, Params & params );
 
-void filterTransitiveEdges( Graph & g, read_size_t FUZZ );
+void filterTransitiveEdges( Graph & g, const Params & params );
 
 void removeAsymetricEdges( Graph & g );
 
-void logGraph( const Graph & g );
+void logGraph( const Graph & g, const ReadTrims & readTrims );
+
+void logGraphToFile( std::ofstream & ofstream, const Graph & g, const ReadTrims & readTrims );
 
 void cleanGraph( Graph & g );
 
@@ -25,7 +27,8 @@ enum GraphEdgeType {
     GRAPH_EDGE_TYPE_MULTI_NEI
 };
 
-
 void cutTips( Graph & g, ReadTrims & readTrims, const Params & params );
 
 void popBubbles( Graph & g, ReadTrims & readTrims );
+
+bool deleteShortEdges(Graph &g, float r);

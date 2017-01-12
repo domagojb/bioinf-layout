@@ -1,5 +1,4 @@
 #include <iostream>
-#include "common.h"
 #include "Overlap.h"
 #include "params.h"
 #include "ReadTrim.h"
@@ -7,94 +6,100 @@
 #include "OverlapUtils.h"
 #include "IO.h"
 #include "GraphUtils.h"
-#include "Unitig.h"
 #include "UnitigUtils.h"
+#include "dotter.h"
 
-#define DATASET "ecoli"
-
-int main() {
-
+Unitigs runAlgorithm(const std::string & overlapsPath, const std::string & readsPath){
+    TIMER_START("Algorithm");
     Overlaps overlaps;
     Params   params( getDefaultParams());
 
-    std::cout << "1) Reading overlaps and reads" << std::endl;
-    loadPAF( overlaps, "../test-data/" DATASET "_overlaps.paf", params );
+    std::cout << "1) Reading overlaps" << std::endl;
+    loadPAF( overlaps, overlapsPath, params );
 
     std::cout << "2) Proposing read trims" << std::endl;
     ReadTrims readTrims;
-    proposeReadTrims( readTrims, overlaps, params, false );
+    proposeReadTrims( readTrims, overlaps, params );
 
     std::cout << "3) Trimming reads" << std::endl;
     trimReads( overlaps, readTrims, params );
 
-    std::cout << "3) Filtering reads" << std::endl;
-    filterReads( overlaps, readTrims, params );
+    std::cout << "4) Filtering internal reads" << std::endl;
+    filterInternalReads( overlaps, readTrims, params );
 
-    std::cout << "4) Proposing read trims" << std::endl;
-    ReadTrims readTrims2;
-    proposeReadTrims( readTrims2, overlaps, params, true );
-
-    std::cout << "5) Trimming reads" << std::endl;
-    trimReads( overlaps, readTrims2, params );
-
-    mergeTrims( readTrims, readTrims2 );
-
-    std::cout << "6) Chimering reads" << std::endl;
+    std::cout << "5) Chimering reads" << std::endl;
     filterChimeric( overlaps, readTrims, params );
 
-    std::cout << "7) Filtering contained reads" << std::endl;
+    std::cout << "6) Filtering contained reads" << std::endl;
     filterContained( overlaps, readTrims, params );
 
-    //    logTrimmedOverlaps( overlaps, readTrims );
-
-    std::cout << "8) Generating graph" << std::endl;
+    std::cout << "7) Generating graph" << std::endl;
     Graph g;
     generateGraph( g, overlaps, readTrims, params );
 
-    //    logGraph(g);
+    std::cout << "8) Filtering transitive edges" << std::endl;
+    filterTransitiveEdges( g, params );
 
-    std::cout << "9) Filtering transitive edges" << std::endl;
-    filterTransitiveEdges( g, 1000 );
-
-    //    logGraph(g);
-
-    std::cout << "10) Removing asymetric edges" << std::endl;
+    std::cout << "9) Removing asymetric edges" << std::endl;
     removeAsymetricEdges( g );
 
-    std::cout << "11) Cutting tips" << std::endl;
+    std::cout << "10) Cutting tips" << std::endl;
     cutTips( g, readTrims, params );
 
-    writeGraphToSIF( "../test-data/" DATASET "_notips.sif", g );
-
-    std::cout << "12) Popping bubbles" << std::endl;
+    std::cout << "11) Popping bubbles" << std::endl;
     popBubbles( g, readTrims );
 
-    writeGraphToSIF( "../test-data/" DATASET "_nobubles.sif", g );
+    std::cout << "12) Removing short edges" << std::endl;
+    for (int i = 0; i <= 2; ++i) {
+        float r = params.minOverlapDropRaion + (params.maxOverlapDropRation - params.minOverlapDropRaion) / 2 * i;
+        if (deleteShortEdges(g, r)) {
+            cutTips( g, readTrims, params );
+            popBubbles( g, readTrims );
+        }
+    }
 
-    //    logGraph(g);
-
-    Unitigs unitigs;
     std::cout << "13) Generating unitigs" << std::endl;
+    Unitigs unitigs;
     generateUnitigs( unitigs, g, readTrims );
+    TIMER_END("Algorithm");
 
-    assignSequencesToUnitigs( unitigs, readTrims, "../test-data/" DATASET "_reads.fasta" );
+    if ( ASSIGN_SEQUENCES_TO_UNITIGS && !readsPath.empty() ) {
+        std::cout << "14) Assigning sequences to unitigs" << std::endl;
+        assignSequencesToUnitigs( unitigs, readTrims, readsPath );
+    }
 
-    logUnitigs( unitigs, readTrims );
+    logUnitigs(unitigs, readTrims);
 
+    return unitigs;
+}
 
-    //    logGraph(g);
+int main(int argc, char *argv[]) {
 
-    //    std::cout << "Left with " << overlaps.size() << " trimmed overlaps" << std::endl;
+    if ( argc <= 3 ) {
+        std::cout << "Not enough arguments\n" \
+                     "Usage:\n" \
+                     "layout <overlaps> <reads> <output>\n";
+        return -1;
+    }
 
-    //
-    //    for (auto const &readTrim: readTrims) {
-    //        std::cout << readTrim.first << " " << readTrim.second.toString() << std::endl;
-    //    }
+    // path to .PAF file with overlaps
+    std::string overlapsPath( argv[1] );
 
+    // path to .FASTA file with reads for assigning sequences to unitigs [not required]
+    std::string readsPath( argv[2] );
 
+    // path to .FASTA file with reference sequence for dotter [not required]
+    // std::string referenceSequencePath( argc >= 3 ? argv[3] : "" );
 
-    //    writeOverlapsToSIF("mnebijemte.sif", overlaps);
+    // path to .FASTA file with reference sequence for dotter [not required]
+    std::string resultSequencePath( argv[3] );
 
+    Unitigs unitigs = runAlgorithm( overlapsPath, readsPath );
+
+//    if ( referenceSequencePath.empty()) return 0;
+
+    unitigsToFASTA( resultSequencePath, unitigs );
+//    dotter( resultSequencePath, referenceSequencePath );
 
     return 0;
 }

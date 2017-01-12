@@ -18,6 +18,11 @@ typedef struct {
     read_size_t minimalOverlap; // bp
     std::size_t maximalTipExtension; // reads
 
+    float minOverlapDropRaion, maxOverlapDropRation;
+    int n_rounds;
+
+    read_size_t filterTransitiveFuzz;
+
 } Params;
 
 Params getDefaultParams();

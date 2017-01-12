@@ -31,15 +31,19 @@ public:
     }
 };
 
-typedef std::map<Vertex, std::vector<Edge>> Graph;
+typedef std::vector<Edge> Edges;
+typedef std::map<Vertex, Edges> Graph;
 
-Vertex invertVertex( const Vertex vertex );
+inline Vertex makeVertex( const read_id_t id, const bool isReversed) { return std::make_pair( id, isReversed ); }
 
-Vertex bVertex( const Edge edge );
+inline Vertex invertVertex( const Vertex vertex ) { return makeVertex( vertex.first, !vertex.second ); }
 
-size_t edgesCount( const Graph & g, const Vertex & vertex );
+inline Vertex bVertex( const Edge edge ) { return makeVertex( edge.bId, edge.bIsReversed ); }
 
-bool hasSingleEdge( const Graph & g, const Vertex & vertex );
+inline Vertex bInvertVertex( const Edge edge ) { return invertVertex(bVertex(edge)); }
 
-const Edge & firstEdge( const Graph & g, const Vertex & vertex );
+inline size_t edgesCount( const Graph & g, const Vertex & vertex ) { return g.at( vertex ).size(); }
 
+inline bool hasSingleEdge( const Graph & g, const Vertex & vertex ) { return edgesCount( g, vertex ) == 1; }
+
+inline const Edge & firstEdge( const Graph & g, const Vertex & vertex ) { return g.at( vertex ).front(); }

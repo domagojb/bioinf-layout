@@ -9,9 +9,7 @@
 #include "UnitigUtils.h"
 
 void generateUnitigs( Unitigs & unitigs, Graph const & g, ReadTrims const & readTrims ) {
-#ifdef UTILS_TIMER
     TIMER_START("Generating unitigs...");
-#endif
     //#define printv(name, v) name<<" "<<(v).first<<" !"[(v).second]
 
     UnitigReads unitigReads;
@@ -30,6 +28,7 @@ void generateUnitigs( Unitigs & unitigs, Graph const & g, ReadTrims const & read
 
         if ( hasVisited.find( vertex ) != hasVisited.end()) continue;
 
+        unitigReads.clear();
 
         hasVisited.insert( vertex );
 
@@ -100,10 +99,7 @@ void generateUnitigs( Unitigs & unitigs, Graph const & g, ReadTrims const & read
     }
 
     std::cout << "Generated " << unitigs.size() << " unitig" << " s"[unitigs.size() > 1] << std::endl;
-    // todo: joining unitigs
-#ifdef UTILS_TIMER
     TIMER_END("Done with unitigs, time elapsed: ");
-#endif
 }
 
 
@@ -117,6 +113,7 @@ static char comp_tab[] = { // complement base
         127 };
 
 void assignSequencesToUnitigs( Unitigs & unitigs, const ReadTrims & readTrims, const std::string pathToFASTA ) {
+    TIMER_START(__func__);
 
     std::unordered_map<read_id_t, std::string> sequences;
 
@@ -150,24 +147,29 @@ void assignSequencesToUnitigs( Unitigs & unitigs, const ReadTrims & readTrims, c
             unitig.sequence += sequence.substr( 0, (size_t) unitigRead.second );
         }
     }
+
+    TIMER_END(__func__);
 }
 
 
-void logUnitigs( const Unitigs & unitigs, const ReadTrims & readTrims ) {
+
+void logUnitigs(  const Unitigs & unitigs, const ReadTrims & readTrims ) {
+#ifdef LOG_UNITIGS
     auto   fp = stdout;
     size_t i( 0 );
     char   name[32];
+
     for ( Unitig const & unitig : unitigs ) {
         sprintf( name, "utg%.6ld%c", i++ + 1, "lc"[unitig.isCircular] );
         fprintf( fp,
                  "S\t%s\t%s\tLN:i:%d\n",
                  name,
-                 !unitig.sequence.empty() ? unitig.sequence.c_str() : "*",
+                 !unitig.sequence.empty() && LOG_UNITIGS_SEQUENCES ? unitig.sequence.c_str() : "*",
                  unitig.length
                );
 
-
         read_size_t cumLength( 0 );
+
         for ( UnitigRead const & unitigRead : unitig.reads ) {
             auto const & vertex( unitigRead.first );
             read_size_t length( unitigRead.second );
@@ -191,8 +193,7 @@ void logUnitigs( const Unitigs & unitigs, const ReadTrims & readTrims ) {
 
             cumLength += length;
         }
-
+        printf("%d\n",unitig.length);
     }
-    // todo: print joined unitigs
-    // todo: print unitig summaries
+#endif
 }
