@@ -14,7 +14,7 @@ Unitigs runAlgorithm(const std::string & overlapsPath, const std::string & reads
     Overlaps overlaps;
     Params   params( getDefaultParams());
 
-    std::cout << "1) Reading overlaps and reads" << std::endl;
+    std::cout << "1) Reading overlaps" << std::endl;
     loadPAF( overlaps, overlapsPath, params );
 
     std::cout << "2) Proposing read trims" << std::endl;
@@ -75,26 +75,31 @@ Unitigs runAlgorithm(const std::string & overlapsPath, const std::string & reads
 
 int main(int argc, char *argv[]) {
 
-    if ( argc <= 2 ) return -1;
+    if ( argc <= 3 ) {
+        std::cout << "Not enough arguments\n" \
+                     "Usage:\n" \
+                     "layout <overlaps> <reads> <output>\n";
+        return -1;
+    }
 
     // path to .PAF file with overlaps
     std::string overlapsPath( argv[1] );
 
     // path to .FASTA file with reads for assigning sequences to unitigs [not required]
-    std::string readsPath( argc >= 2 ? argv[2] : "" );
+    std::string readsPath( argv[2] );
 
     // path to .FASTA file with reference sequence for dotter [not required]
-    std::string referenceSequencePath( argc >= 3 ? argv[3] : "" );
+    // std::string referenceSequencePath( argc >= 3 ? argv[3] : "" );
 
     // path to .FASTA file with reference sequence for dotter [not required]
-    std::string resultSequencePath( "/tmp/result.fasta" );
+    std::string resultSequencePath( argv[3] );
 
     Unitigs unitigs = runAlgorithm( overlapsPath, readsPath );
 
-    if ( referenceSequencePath.empty()) return 0;
+//    if ( referenceSequencePath.empty()) return 0;
 
     unitigsToFASTA( resultSequencePath, unitigs );
-    dotter( resultSequencePath, referenceSequencePath );
+//    dotter( resultSequencePath, referenceSequencePath );
 
     return 0;
 }

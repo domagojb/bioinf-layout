@@ -40,7 +40,7 @@ add_definitions(-DGEPARD_JAR="${GEPARD_JAR_PATH}")
 add_definitions(-DGEPARD_MAT="${GEPARD_MAT_PATH}")
 #add_definitions(-DLOG_UNITIGS)
 #add_definitions(-DLOG_UNITIGS_SEQUENCES)
-add_definitions(-DASSIGN_SEQUENCES_TO_UNITIGS=0)
+add_definitions(-DASSIGN_SEQUENCES_TO_UNITIGS=1)
 #add_definitions(-DENABLE_DOTTER)
 
 add_executable(layout ${LAYOUT_SOURCES})
