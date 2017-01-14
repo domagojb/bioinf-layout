@@ -66,7 +66,7 @@ isChimeric( size_t start, size_t end, const Overlaps & overlaps, ReadTrims & rea
     return max >= params.minimalReadCoverage;
 }
 
-static void extractPoints( std::vector<std::pair<read_id_t , bool>> & points,
+static void extractPoints( std::vector<std::pair<read_size_t , bool>> & points,
                     const Overlaps & overlaps,
                     size_t beginIdx,
                     size_t endIdx,
