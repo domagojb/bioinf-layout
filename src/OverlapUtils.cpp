@@ -167,7 +167,9 @@ void proposeReadTrims( ReadTrims & readTrims, const Overlaps & overlaps, const P
 }
 
 
-void trimReads( Overlaps & overlaps, ReadTrims & readTrims, const Params params ) {
+
+
+void trimReads( Overlaps & overlaps, ReadTrims & readTrims, const Params &params ) {
     TIMER_START("Trimming reads...");
 
     // trimming proposed reads
@@ -281,11 +283,113 @@ void trimReads( Overlaps & overlaps, ReadTrims & readTrims, const Params params 
     }
     overlaps.swap( newOverlaps );
 
+//
+//
+//    overlaps.erase(std::remove_if(overlaps.begin(),overlaps.end(),[&readTrims,&params](Overlap & overlap){
+//
+//        auto const & aTrim( readTrims.at( overlap.aId()));
+//        auto const &bTrim( readTrims.at(overlap.bId()));
+//
+//        // if read A or read B is deleted, delete overlap between them (do not emplace it to new overlap vec)
+//        if ( aTrim.del || bTrim.del ) return true;
+//
+//        read_size_t aStartNew, aEndNew, bStartNew, bEndNew;
+//
+//        // trim overlaps based on read trims, if there is overlap that exceeds read trim region, trim the read also
+//        if ( overlap.isReversed()) {
+//            if ( overlap.bEnd() < bTrim.end ) {
+//                aStartNew = overlap.aStart();
+//            } else {
+//                aStartNew = overlap.aStart() + ( overlap.bEnd() - bTrim.end );
+//            }
+//            if ( overlap.bStart() > bTrim.start ) {
+//                aEndNew = overlap.aEnd();
+//            } else {
+//                aEndNew = overlap.aEnd() - ( bTrim.start - overlap.bStart());
+//            }
+//            if ( overlap.aEnd() < aTrim.end ) {
+//                bStartNew = overlap.bStart();
+//            } else {
+//                bStartNew = overlap.bStart() + ( overlap.aEnd() - aTrim.end );
+//            }
+//            if ( overlap.aStart() > aTrim.start ) {
+//                bEndNew = overlap.bEnd();
+//            } else {
+//                bEndNew = overlap.bEnd() - ( aTrim.start - overlap.aStart());
+//            }
+//        } else {
+//            if ( overlap.bStart() > bTrim.start ) {
+//                aStartNew = overlap.aStart();
+//            } else {
+//                aStartNew = overlap.aStart() + ( bTrim.start - overlap.bStart());
+//            }
+//            if ( overlap.bEnd() < bTrim.end ) {
+//                aEndNew = overlap.aEnd();
+//            } else {
+//                aEndNew = overlap.aEnd() - ( overlap.bEnd() - bTrim.end );
+//            }
+//            if ( overlap.aStart() > aTrim.start ) {
+//                bStartNew = overlap.bStart();
+//            } else {
+//                bStartNew = overlap.bStart() + ( aTrim.start - overlap.aStart());
+//            }
+//            if ( overlap.aEnd() < aTrim.end ) {
+//                bEndNew = overlap.bEnd();
+//            } else {
+//                bEndNew = overlap.bEnd() - ( overlap.aEnd() - aTrim.end );
+//            }
+//        }
+//
+//        // convert overlap to read trim coordinate system
+//        if ( aStartNew > aTrim.start ) {
+//            aStartNew = aStartNew - aTrim.start;
+//        } else {
+//            aStartNew = 0;
+//        }
+//        if ( aEndNew < aTrim.end ) {
+//            aEndNew = aEndNew - aTrim.start;
+//        } else {
+//            aEndNew = aTrim.end - aTrim.start;
+//        }
+//        if ( bStartNew > bTrim.start ) {
+//            bStartNew = bStartNew - bTrim.start;
+//        } else {
+//            bStartNew = 0;
+//        }
+//        if ( bEndNew < bTrim.end ) {
+//            bEndNew = bEndNew - bTrim.start;
+//        } else {
+//            bEndNew = bTrim.end - bTrim.start;
+//        }
+//
+//        read_size_t aSpanNew( aEndNew - aStartNew );
+//        read_size_t bSpanNew( bEndNew - bStartNew );
+//
+//        // if match span is too small discard overlap
+//        if ( aSpanNew < params.minAllowedMatchSpan || bSpanNew < params.minAllowedMatchSpan ) return true;
+//
+//
+//        // brother to brother
+//        double r = (double) ( aSpanNew + bSpanNew ) / ( overlap.aSpan() + overlap.bSpan());
+//        read_size_t alignmentBlockLength( static_cast<read_size_t>(std::round( overlap.alignmentBlockLength() * r )));
+//        read_size_t numberOfSequenceMatches( static_cast<read_size_t>(std::round( overlap.numberOfSequenceMatches() * r
+//                                                                                )));
+//
+//        // construct new possibly trimmed and shifted overlap
+//        overlap.offset(aStartNew,aEndNew,
+//                       bStartNew,
+//                       bEndNew,
+//                       numberOfSequenceMatches,
+//                       alignmentBlockLength
+//                      );
+//        return false;
+//    }),overlaps.end());
+
     std::cout << "Remained " << overlaps.size() << " overlaps" << std::endl;
     TIMER_END("Done trimming, time passed: ");
 }
 
-void filterInternalReads( Overlaps & overlaps, ReadTrims & readTrims, const Params params ) {
+void filterInternalReads( Overlaps & overlaps, ReadTrims & readTrims, const Params & params ) {
     TIMER_START("Filtering internal reads...");
 
     Overlaps newOverlaps;

@@ -8,8 +8,8 @@
 #include <iomanip>
 #endif
 
-typedef int read_id_t; // read id type (aId..)
-typedef int read_size_t; // read size type (aStart, aEnd...)
+typedef uint32_t read_id_t; // read id type (aId..)
+typedef uint16_t read_size_t; // read size type (aStart, aEnd...)
 
 #ifdef UTILS_TIMER
 typedef std::chrono::high_resolution_clock Clock;

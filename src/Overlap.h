@@ -61,6 +61,20 @@ public:
         READ(alignmentBlockLength_);
     }
 
+    void offset(read_size_t aStartNew, read_size_t aEndNew,
+               read_size_t bStartNew,
+               read_size_t bEndNew,
+               read_size_t numberOfSequenceMatches,
+               read_size_t alignmentBlockLength
+              ){
+        aStart_ = aStartNew;
+        aEnd_ = aEndNew;
+        bStart_ = bStartNew;
+        bEnd_ = bEndNew;
+        numberOfSequenceMatches_ = numberOfSequenceMatches;
+        alignmentBlockLength_= alignmentBlockLength;
+    }
+
 
     void serialize(char * ptr) const {
 #define WRITE(val) *((std::remove_const_t<decltype(val)> *)ptr) = val,ptr+= sizeof(decltype(val))

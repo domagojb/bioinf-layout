@@ -173,15 +173,20 @@ void loadPAF( Overlaps & overlaps, const std::string & path, const Params & para
 
 void loadDIM( Overlaps & overlaps, const std::string & path, const Params & params ) {
     TIMER_START("loading overlaps");
-    std::ifstream is;
-    is.open( path );
+    std::ifstream is( path, std::ios::binary | std::ios::ate );
 
     if ( !is.is_open()) {
         std::cerr << "Unable to open file " << path << std::endl;
         return;
     }
 
+
     size_t serializedSize( Overlap::getSerializedSize());
+
+
+    overlaps.reserve( static_cast<size_t >(is.tellg()/serializedSize*1.8f)); // assume number of overlaps
+    is.seekg(0,std::ios::beg);
+
     char * buffer = (char *) malloc(serializedSize);
     do {
         is.read(buffer,serializedSize);
@@ -220,7 +225,7 @@ void loadDIM( Overlaps & overlaps, const std::string & path, const Params & para
 
     std::sort( overlaps.begin(), overlaps.end());
 
-    std::cout << "Read " << overlaps.size() << " overlaps" << std::endl;
+    std::cout << "Read " << overlaps.size()<<"of"<<overlaps.capacity() << " overlaps" << std::endl;
 
     TIMER_END("loading overlaps ended");
 }

@@ -17,7 +17,7 @@ void filterChimeric( const Overlaps & overlaps, ReadTrims & readTrims, const Par
 
 void filterContained( Overlaps & overlaps, ReadTrims & readTrims, const Params & params );
 
-void trimReads( Overlaps & overlaps, ReadTrims & readTrims, const Params params );
+void trimReads( Overlaps & overlaps, ReadTrims & readTrims, const Params &params );
 
 void classifyOverlapAndMeasureItsLength( OverlapClassification & overlapClassification,
                                          Edge & edge,
@@ -28,4 +28,4 @@ void classifyOverlapAndMeasureItsLength( OverlapClassification & overlapClassifi
                                          float mappingLengthRatio );
 
 
-void filterInternalReads( Overlaps & overlaps, ReadTrims & readTrims, const Params params );
+void filterInternalReads( Overlaps & overlaps, ReadTrims & readTrims, const Params &params );
