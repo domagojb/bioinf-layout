@@ -10,14 +10,18 @@
 #include "dotter.h"
 
 Unitigs runAlgorithm(const std::string & overlapsPath, const std::string & readsPath){
-    TIMER_START("Algorithm");
     Overlaps overlaps;
     Params   params( getDefaultParams());
 
     std::cout << "1) Reading overlaps" << std::endl;
-    loadPAF( overlaps, overlapsPath, params );
+//    convertPAFtoDIM(overlapsPath,overlapsPath.substr(0,overlapsPath.size()-4)+".dim");
+//            exit(0);
+//    loadPAF( overlaps, overlapsPath, params );
+    loadDIM( overlaps, overlapsPath, params );
 
+    TIMER_START("Algorithm");
     std::cout << "2) Proposing read trims" << std::endl;
+
     ReadTrims readTrims;
     proposeReadTrims( readTrims, overlaps, params );
 
@@ -61,12 +65,11 @@ Unitigs runAlgorithm(const std::string & overlapsPath, const std::string & reads
     std::cout << "13) Generating unitigs" << std::endl;
     Unitigs unitigs;
     generateUnitigs( unitigs, g, readTrims );
-    TIMER_END("Algorithm");
 
-    if ( ASSIGN_SEQUENCES_TO_UNITIGS && !readsPath.empty() ) {
-        std::cout << "14) Assigning sequences to unitigs" << std::endl;
-        assignSequencesToUnitigs( unitigs, readTrims, readsPath );
-    }
+    std::cout << "14) Assigning sequences to unitigs" << std::endl;
+    assignSequencesToUnitigs( unitigs, readTrims, readsPath );
+
+    TIMER_END("Algorithm");
 
     logUnitigs(unitigs, readTrims);
 

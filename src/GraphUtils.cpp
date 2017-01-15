@@ -426,7 +426,7 @@ bool deleteShortEdges(Graph &g, float r) {
     int cntShort = 0;
     for (auto &p : g) {
         if (p.second.size() < 2) continue;
-        int maxOverlap = 0;
+        read_size_t maxOverlap = 0;
         for (auto &e : p.second) maxOverlap = std::max(maxOverlap, e.numberOfSequenceMatches);
 
         if (maxOverlap != p.second[0].numberOfSequenceMatches) continue;
