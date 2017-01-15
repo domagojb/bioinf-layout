@@ -6,6 +6,7 @@
 #include "GraphUtils.h"
 #include <fstream>
 #include <assert.h>
+#include <algorithm>
 
 static void isUnitigEnd( GraphEdgeType & graphEdgeType, Vertex & vertexOut, Graph & graph, const Vertex & vertexIn ) {
 
