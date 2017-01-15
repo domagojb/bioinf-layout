@@ -2,7 +2,6 @@
 
 ### To compile project
 ```
-cd src/
 cmake CMakeList.txt
 make
 ```
@@ -18,5 +17,5 @@ make
 ### Test example with lambda genome
 
 ```
-./layout ../test-data/lambda_overlaps.paf ../test-data/lambda_reads.fasta ../test-data/lambda_unitig.fasta
+./layout test-data/lambda_overlaps.paf test-data/lambda_reads.fasta test-data/lambda_unitig.fasta
 ```
