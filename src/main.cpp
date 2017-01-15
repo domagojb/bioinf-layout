@@ -16,8 +16,8 @@ Unitigs runAlgorithm(const std::string & overlapsPath, const std::string & reads
     std::cout << "1) Reading overlaps" << std::endl;
 //    convertPAFtoDIM(overlapsPath,overlapsPath.substr(0,overlapsPath.size()-4)+".dim");
 //            exit(0);
-//    loadPAF( overlaps, overlapsPath, params );
-    loadDIM( overlaps, overlapsPath, params );
+    loadPAF( overlaps, overlapsPath, params );
+//    loadDIM( overlaps, overlapsPath, params );
 
     TIMER_START("Algorithm");
     std::cout << "2) Proposing read trims" << std::endl;
